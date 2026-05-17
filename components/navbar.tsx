@@ -12,6 +12,7 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const profileRef = useRef<HTMLDivElement>(null);
   const savedRef = useRef<HTMLDivElement>(null);
@@ -39,10 +40,12 @@ export function Navbar() {
       .then((res) => res.json())
       .then((data) => {
         setIsLoggedIn(data.isLoggedIn || false);
+        setIsAdmin(data.isAdmin || false);
         setIsCheckingSession(false);
       })
       .catch(() => {
         setIsLoggedIn(false);
+        setIsAdmin(false);
         setIsCheckingSession(false);
       });
   }, []);
@@ -180,6 +183,11 @@ export function Navbar() {
                       <Link href="/dashboard" className="block px-4 py-3 text-sm font-medium text-black hover:bg-gray-50" onClick={() => setIsProfileOpen(false)}>
                         Dashboard
                       </Link>
+                      {isAdmin && (
+                        <Link href="/admin" className="block px-4 py-3 text-sm font-medium text-black hover:bg-gray-50" onClick={() => setIsProfileOpen(false)}>
+                          Admin
+                        </Link>
+                      )}
                       <Link href="/workspace" className="block px-4 py-3 text-sm font-medium text-black hover:bg-gray-50" onClick={() => setIsProfileOpen(false)}>
                         Workspace
                       </Link>
