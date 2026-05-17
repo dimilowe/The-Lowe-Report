@@ -164,11 +164,23 @@ export async function GET() {
     const session = await getIronSession<UserSessionData>(await cookies(), userSessionOptions);
     
     if (session.isLoggedIn && session.userId) {
+      const { query } = await import("@/lib/db");
+      const result = await query(
+        "SELECT is_admin FROM users WHERE id = $1",
+        [session.userId]
+      );
+      const isAdmin = result.rows.length > 0 ? (result.rows[0].is_admin || false) : false;
+
+      if (isAdmin !== session.isAdmin) {
+        session.isAdmin = isAdmin;
+        await session.save();
+      }
+
       return NextResponse.json({
         isLoggedIn: true,
         userId: session.userId,
         email: session.email,
-        isAdmin: session.isAdmin || false,
+        isAdmin,
       });
     }
     
