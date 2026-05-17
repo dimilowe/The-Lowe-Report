@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Client } from "@replit/object-storage";
 import { readFile } from "fs/promises";
 import path from "path";
 import { Buffer } from "buffer";
+import { getReplitStorageClient } from "@/lib/objectStorage/replitClient";
 
 const LOCAL_WORKSPACE_UPLOAD_DIR = path.join(process.cwd(), "tmp", "workspace-uploads");
 const ALLOW_LOCAL_FILE_FALLBACK = process.env.NODE_ENV !== "production";
@@ -14,41 +14,31 @@ export async function GET(
   try {
     const { filename: rawFilename } = await params;
     const filename = path.basename(rawFilename);
-    
-    let result: Awaited<ReturnType<Client["downloadAsBytes"]>> | null = null;
-    let downloadThrown: unknown = null;
-    const storage = new Client();
-    try {
-      result = await storage.downloadAsBytes(filename);
-    } catch (err) {
-      downloadThrown = err;
-    }
-    
+
+    const result = await getReplitStorageClient().downloadAsBytes(filename);
+
     let responseBuffer: Buffer | null = null;
-    if (result?.ok) {
-      const bufferData = result.value;
-      const buffer = Array.isArray(bufferData) ? bufferData[0] : bufferData;
-      responseBuffer = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer as ArrayBuffer);
+    if (result.ok && result.value) {
+      responseBuffer = result.value;
     } else if (ALLOW_LOCAL_FILE_FALLBACK) {
-      // Local dev fallback: read file previously saved by upload routes.
       try {
         const localPath = path.join(LOCAL_WORKSPACE_UPLOAD_DIR, filename);
         responseBuffer = await readFile(localPath);
       } catch {
-        console.error("File download error:", result?.error ?? downloadThrown);
+        console.error("File download error:", result.error);
         return NextResponse.json(
           { error: "File not found" },
           { status: 404 }
         );
       }
     } else {
-      console.error("File download error:", result?.error ?? downloadThrown);
+      console.error("File download error:", result.error);
       return NextResponse.json(
         { error: "File not found" },
         { status: 404 }
       );
     }
-    
+
     const ext = filename.split('.').pop()?.toLowerCase();
     const contentTypeMap: Record<string, string> = {
       'png': 'image/png',
@@ -61,9 +51,9 @@ export async function GET(
       'mp3': 'audio/mpeg',
       'mp4': 'video/mp4',
     };
-    
+
     const contentType = contentTypeMap[ext || ''] || 'application/octet-stream';
-    
+
     const arrayBuffer = responseBuffer.buffer.slice(
       responseBuffer.byteOffset,
       responseBuffer.byteOffset + responseBuffer.byteLength

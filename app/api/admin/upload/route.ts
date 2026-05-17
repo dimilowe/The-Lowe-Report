@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { AdminSessionData, sessionOptions } from "@/lib/admin-session";
-import { Client } from "@replit/object-storage";
+import { getReplitStorageClient } from "@/lib/objectStorage/replitClient";
 import { randomUUID } from "crypto";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     const filename = `${randomUUID()}.${ext}`;
     
-    const storage = new Client();
+    const storage = getReplitStorageClient();
     let storedInObjectStorage = false;
     let storageError: unknown = null;
     try {
