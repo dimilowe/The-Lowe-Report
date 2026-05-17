@@ -73,10 +73,10 @@ export function Navbar() {
       <div className="mx-auto grid max-w-7xl grid-cols-3 items-center px-4 py-4 md:px-6">
         <div className="flex items-center justify-start">
           <Link
-            href="/newsletter"
+            href="/store"
             className="hidden border border-black bg-black px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:bg-white hover:text-black sm:inline-flex"
           >
-            Subscribe
+            Products
           </Link>
         </div>
 
@@ -234,8 +234,8 @@ export function Navbar() {
             <Link href="/newsletter" className="py-2 hover:text-orange-600" onClick={() => setIsMobileMenuOpen(false)}>
               Articles
             </Link>
-            <Link href="/tools" className="py-2 hover:text-orange-600" onClick={() => setIsMobileMenuOpen(false)}>
-              Tools
+            <Link href="/store" className="py-2 hover:text-orange-600" onClick={() => setIsMobileMenuOpen(false)}>
+              Products
             </Link>
             <Link href="/pricing" className="py-2 hover:text-orange-600" onClick={() => setIsMobileMenuOpen(false)}>
               Subscribe
