@@ -12,14 +12,12 @@ function formatContent(content: string): string {
   if (isHTML(content)) {
     return content;
   }
-  // Plain text: convert double newlines to paragraphs, single newlines to <br>
+  // Plain text: every non-empty line becomes its own <p> tag
   return content
-    .split(/\n\n+/)
-    .map((para) => {
-      const inner = para.trim().replace(/\n/g, '<br />');
-      return inner ? `<p>${inner}</p>` : '';
-    })
+    .split(/\n+/)
+    .map((line) => line.trim())
     .filter(Boolean)
+    .map((line) => `<p>${line}</p>`)
     .join('\n');
 }
 

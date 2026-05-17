@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { X, Bell, QrCode, Zap } from "lucide-react";
+import { X } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function MonetizationBar() {
@@ -24,43 +24,39 @@ export default function MonetizationBar() {
   if (isHidden) return null;
 
   return (
-    <div 
+    <div
       className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 ${
         isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
       }`}
     >
-      <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-gray-700 shadow-2xl">
+      <div className="bg-white border-t border-black shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 min-w-0">
-              <Zap className="w-4 h-4 text-orange-400 flex-shrink-0 hidden sm:block" />
-              <span className="text-sm text-gray-300 truncate">
-                <span className="font-semibold text-white">Creators:</span>
-                <span className="hidden sm:inline"> Want more views, subs, & conversions?</span>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-black">
+              Grow your audience —
+              <span className="font-normal text-gray-600 ml-1 normal-case tracking-normal">
+                tools built for creators
               </span>
-            </div>
-            
+            </p>
+
             <div className="flex items-center gap-3 flex-shrink-0">
-              <Link 
+              <Link
                 href="/products/nudge"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-gray-900 rounded-full text-xs font-semibold transition-colors whitespace-nowrap"
+                className="px-4 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold uppercase tracking-[0.14em] transition-colors whitespace-nowrap"
               >
-                <Bell className="w-3.5 h-3.5" />
-                <span>Try Nudge</span>
+                Try Nudge
               </Link>
-              
-              <Link 
+
+              <Link
                 href="/products/qrsocial"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-gray-900 rounded-full text-xs font-semibold transition-colors whitespace-nowrap"
+                className="px-4 py-1.5 border border-black hover:bg-black hover:text-white text-black text-xs font-semibold uppercase tracking-[0.14em] transition-colors whitespace-nowrap"
               >
-                <QrCode className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">QR Social</span>
-                <span className="sm:hidden">QR</span>
+                QR Social
               </Link>
-              
-              <button 
+
+              <button
                 onClick={handleDismiss}
-                className="p-1.5 text-gray-400 hover:text-white transition-colors"
+                className="p-1 text-gray-400 hover:text-black transition-colors"
                 aria-label="Dismiss"
               >
                 <X className="w-4 h-4" />
