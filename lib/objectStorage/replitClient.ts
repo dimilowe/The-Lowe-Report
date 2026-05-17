@@ -1,4 +1,5 @@
 import { Storage } from "@google-cloud/storage";
+import type { Readable } from "stream";
 
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 
@@ -47,11 +48,9 @@ function getBucketAndPrefix(): { bucketName: string; prefix: string } {
   );
 }
 
-export interface StorageResult<T> {
-  ok: boolean;
-  value?: T;
-  error?: unknown;
-}
+export type StorageResult<T> =
+  | { ok: true; value: T }
+  | { ok: false; error: unknown };
 
 class GCSStorageClient {
   async uploadFromBytes(
@@ -65,16 +64,45 @@ class GCSStorageClient {
       const bucket = storage.bucket(bucketName);
       const file = bucket.file(objectName);
       await file.save(data);
-      return { ok: true };
+      return { ok: true, value: undefined };
     } catch (err) {
       console.error("GCS uploadFromBytes error:", err);
       return { ok: false, error: err };
     }
   }
 
-  async downloadAsBytes(
-    filename: string
-  ): Promise<StorageResult<Buffer>> {
+  async uploadFromText(
+    filename: string,
+    text: string
+  ): Promise<StorageResult<void>> {
+    return this.uploadFromBytes(filename, Buffer.from(text, "utf8"));
+  }
+
+  async uploadFromStream(
+    filename: string,
+    stream: Readable
+  ): Promise<StorageResult<void>> {
+    try {
+      const { bucketName, prefix } = getBucketAndPrefix();
+      const objectName = prefix ? `${prefix}/${filename}` : filename;
+      const storage = getStorageClient();
+      const bucket = storage.bucket(bucketName);
+      const file = bucket.file(objectName);
+      await new Promise<void>((resolve, reject) => {
+        const writeStream = file.createWriteStream();
+        stream.pipe(writeStream);
+        writeStream.on("finish", resolve);
+        writeStream.on("error", reject);
+        stream.on("error", reject);
+      });
+      return { ok: true, value: undefined };
+    } catch (err) {
+      console.error("GCS uploadFromStream error:", err);
+      return { ok: false, error: err };
+    }
+  }
+
+  async downloadAsBytes(filename: string): Promise<StorageResult<Buffer>> {
     try {
       const { bucketName, prefix } = getBucketAndPrefix();
       const objectName = prefix ? `${prefix}/${filename}` : filename;
@@ -85,6 +113,47 @@ class GCSStorageClient {
       return { ok: true, value: contents };
     } catch (err) {
       console.error("GCS downloadAsBytes error:", err);
+      return { ok: false, error: err };
+    }
+  }
+
+  async downloadAsText(filename: string): Promise<StorageResult<string>> {
+    const result = await this.downloadAsBytes(filename);
+    if (!result.ok) {
+      return { ok: false, error: result.error };
+    }
+    return { ok: true, value: result.value.toString("utf8") };
+  }
+
+  async delete(filename: string): Promise<StorageResult<void>> {
+    try {
+      const { bucketName, prefix } = getBucketAndPrefix();
+      const objectName = prefix ? `${prefix}/${filename}` : filename;
+      const storage = getStorageClient();
+      const bucket = storage.bucket(bucketName);
+      const file = bucket.file(objectName);
+      await file.delete();
+      return { ok: true, value: undefined };
+    } catch (err) {
+      console.error("GCS delete error:", err);
+      return { ok: false, error: err };
+    }
+  }
+
+  async list(): Promise<StorageResult<Array<{ name: string }>>> {
+    try {
+      const { bucketName, prefix } = getBucketAndPrefix();
+      const storage = getStorageClient();
+      const bucket = storage.bucket(bucketName);
+      const [files] = await bucket.getFiles(prefix ? { prefix: `${prefix}/` } : {});
+      const items = files.map((f) => {
+        const rawName = f.name;
+        const name = prefix ? rawName.replace(`${prefix}/`, "") : rawName;
+        return { name };
+      });
+      return { ok: true, value: items };
+    } catch (err) {
+      console.error("GCS list error:", err);
       return { ok: false, error: err };
     }
   }

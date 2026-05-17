@@ -25,14 +25,14 @@ export async function GET(
         const localPath = path.join(LOCAL_WORKSPACE_UPLOAD_DIR, filename);
         responseBuffer = await readFile(localPath);
       } catch {
-        console.error("File download error:", result.error);
+        console.error("File download error:", !result.ok ? result.error : "unknown");
         return NextResponse.json(
           { error: "File not found" },
           { status: 404 }
         );
       }
     } else {
-      console.error("File download error:", result.error);
+      console.error("File download error:", !result.ok ? result.error : "unknown");
       return NextResponse.json(
         { error: "File not found" },
         { status: 404 }

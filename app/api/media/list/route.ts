@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const allFiles = filesResult.value;
+    const allFiles = filesResult.value ?? [];
     
     const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     const imageFiles = allFiles.filter((file: any) => {
