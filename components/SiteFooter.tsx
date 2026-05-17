@@ -8,8 +8,8 @@ export default function SiteFooter() {
       <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">VCM Suite</p>
-            <p className="text-sm text-gray-600">Simple tools, courses, and resources for creators.</p>
+            <p className="text-sm font-semibold text-gray-900">The Lowe Report</p>
+            <p className="text-sm text-gray-600">Culture, style, and creator business coverage.</p>
           </div>
 
           <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-600">
@@ -35,7 +35,7 @@ export default function SiteFooter() {
         </div>
 
         <div className="mt-6 border-t border-gray-100 pt-4 text-xs text-gray-500">
-          © {year} VCM Suite. All rights reserved.
+          © {year} The Lowe Report. All rights reserved.
         </div>
       </div>
     </footer>

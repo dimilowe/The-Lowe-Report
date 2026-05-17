@@ -1,23 +1,27 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import NewsletterPage from "./newsletter/page";
 
 export const metadata: Metadata = {
-  title: "VCM Suite - Creator Store",
-  description: "Shop creator apps, downloads, templates, and resources.",
+  title: "The Lowe Report",
+  description: "Read the latest reporting, interviews, culture, style, and creator business coverage from The Lowe Report.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "VCM Suite - Creator Store",
-    description: "Shop creator apps, downloads, templates, and resources.",
+    title: "The Lowe Report",
+    description: "Read the latest reporting, interviews, culture, style, and creator business coverage.",
     url: "/",
     type: "website",
-    siteName: "VCM Suite",
+    siteName: "The Lowe Report",
   },
 };
 
-export const revalidate = 300;
+export const revalidate = 60;
 
-export default function HomePage() {
-  redirect("/store");
+export default function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string; page?: string }>;
+}) {
+  return <NewsletterPage searchParams={searchParams} />;
 }

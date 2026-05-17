@@ -1,22 +1,17 @@
 import { query } from "@/lib/db";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Metadata } from "next";
-import { NewsletterSignup } from "@/components/NewsletterSignup";
-import { CategoryFilter } from "@/components/CategoryFilter";
-import { NewsletterSearchList } from "@/components/NewsletterSearchList";
 
 export const revalidate = 60;
 
 const POSTS_PER_PAGE = 10;
 
 export const metadata: Metadata = {
-  title: "Blog & Newsletter | VCM Suite",
-  description: "Read the latest insights, tutorials, and tips for modern creators. Get exclusive tools, early access, and insider tips delivered weekly.",
+  title: "The Lowe Report",
+  description: "Read the latest reporting, interviews, culture, style, and creator business coverage from The Lowe Report.",
   openGraph: {
-    title: "Blog & Newsletter | VCM Suite",
-    description: "Read the latest insights, tutorials, and tips for modern creators.",
+    title: "The Lowe Report",
+    description: "Read the latest reporting, interviews, culture, style, and creator business coverage.",
     type: "website",
   },
 };
@@ -46,24 +41,111 @@ interface PaginatedResult {
   currentPage: number;
 }
 
+type DisplayPost = BlogPost & {
+  eyebrow: string;
+  byline: string;
+  href: string | null;
+};
+
+const fallbackPosts: DisplayPost[] = [
+  {
+    id: -1,
+    title: "The New Rules of Culture, Style, and Creator Business",
+    slug: "coming-soon-culture-style-creator-business",
+    excerpt: "The Lowe Report is building an editorial home for modern taste, ambition, and the business of influence.",
+    featured_image_url: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1600",
+    published_at: new Date(),
+    view_count: 0,
+    categories: [],
+    eyebrow: "Editor's Letter",
+    byline: "By The Lowe Report",
+    href: null,
+  },
+  {
+    id: -2,
+    title: "What Personal Style Looks Like When Everyone Has a Camera",
+    slug: "coming-soon-personal-style",
+    excerpt: "A sharper look at taste, image, and why the best-dressed people online still feel specific.",
+    featured_image_url: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200",
+    published_at: new Date(),
+    view_count: 0,
+    categories: [],
+    eyebrow: "Style",
+    byline: "By The Lowe Report",
+    href: null,
+  },
+  {
+    id: -3,
+    title: "Inside the Creator Economy's Next Status Symbols",
+    slug: "coming-soon-creator-economy",
+    excerpt: "The new markers of taste are not just what you wear, but what you build, own, and publish.",
+    featured_image_url: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=1200",
+    published_at: new Date(),
+    view_count: 0,
+    categories: [],
+    eyebrow: "Business",
+    byline: "By The Lowe Report",
+    href: null,
+  },
+  {
+    id: -4,
+    title: "Why the Best Media Brands Feel Like Worlds",
+    slug: "coming-soon-media-worlds",
+    excerpt: "A media site is more than articles. It is a point of view with rhythm, taste, and repeatable rituals.",
+    featured_image_url: "https://images.unsplash.com/photo-1495020689067-958852a7765e?q=80&w=800",
+    published_at: new Date(),
+    view_count: 0,
+    categories: [],
+    eyebrow: "Media",
+    byline: "By The Lowe Report",
+    href: null,
+  },
+  {
+    id: -5,
+    title: "The Return of Editorial Authority",
+    slug: "coming-soon-editorial-authority",
+    excerpt: "Curation matters again when everyone can publish everything.",
+    featured_image_url: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800",
+    published_at: new Date(),
+    view_count: 0,
+    categories: [],
+    eyebrow: "Opinion",
+    byline: "By The Lowe Report",
+    href: null,
+  },
+  {
+    id: -6,
+    title: "How Taste Travels From Street to Screen",
+    slug: "coming-soon-taste-travels",
+    excerpt: "The fastest signals in fashion, music, and culture now move through feeds before institutions catch up.",
+    featured_image_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800",
+    published_at: new Date(),
+    view_count: 0,
+    categories: [],
+    eyebrow: "Culture",
+    byline: "By The Lowe Report",
+    href: null,
+  },
+];
+
 async function getBlogPosts(categorySlug?: string, page: number = 1): Promise<PaginatedResult> {
   const offset = (page - 1) * POSTS_PER_PAGE;
-  
+
   let countSql = `
     SELECT COUNT(DISTINCT bp.id) as count
     FROM blog_posts bp
     LEFT JOIN blog_post_categories bpc ON bp.id = bpc.blog_post_id
     WHERE bp.published_at IS NOT NULL AND bp.published_at <= NOW() AND (bp.unlisted IS NULL OR bp.unlisted = false)
   `;
-  
+
   let sql = `
-    SELECT 
-      bp.id, 
-      bp.title, 
-      bp.slug, 
-      bp.excerpt, 
-      bp.featured_image_url, 
-      bp.published_at, 
+    SELECT
+      bp.id,
+      bp.title,
+      bp.slug,
+      bp.excerpt,
+      bp.featured_image_url,
+      bp.published_at,
       bp.view_count,
       COALESCE(
         json_agg(
@@ -82,7 +164,7 @@ async function getBlogPosts(categorySlug?: string, page: number = 1): Promise<Pa
 
   if (categorySlug) {
     const categoryFilter = ` AND bp.id IN (
-      SELECT blog_post_id FROM blog_post_categories 
+      SELECT blog_post_id FROM blog_post_categories
       WHERE category_id = (SELECT id FROM categories WHERE slug = $${paramIndex})
     )`;
     sql += categoryFilter;
@@ -96,13 +178,13 @@ async function getBlogPosts(categorySlug?: string, page: number = 1): Promise<Pa
     ORDER BY bp.published_at DESC
     LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
   `;
-  
+
   const countResult = await query(countSql, categorySlug ? [categorySlug] : []);
-  const totalCount = parseInt(countResult.rows[0]?.count || '0');
+  const totalCount = parseInt(countResult.rows[0]?.count || "0");
   const totalPages = Math.ceil(totalCount / POSTS_PER_PAGE);
-  
+
   const result = await query(sql, [...params, POSTS_PER_PAGE, offset]);
-  
+
   return {
     posts: result.rows,
     totalCount,
@@ -113,15 +195,15 @@ async function getBlogPosts(categorySlug?: string, page: number = 1): Promise<Pa
 
 async function getCategories(): Promise<Category[]> {
   const result = await query(
-    `SELECT 
-      c.id, 
-      c.name, 
+    `SELECT
+      c.id,
+      c.name,
       c.slug,
       COUNT(bpc.blog_post_id) as post_count
      FROM categories c
      LEFT JOIN blog_post_categories bpc ON c.id = bpc.category_id
-     LEFT JOIN blog_posts bp ON bpc.blog_post_id = bp.id 
-       AND bp.published_at IS NOT NULL 
+     LEFT JOIN blog_posts bp ON bpc.blog_post_id = bp.id
+       AND bp.published_at IS NOT NULL
        AND bp.published_at <= NOW()
        AND (bp.unlisted IS NULL OR bp.unlisted = false)
      GROUP BY c.id
@@ -132,143 +214,186 @@ async function getCategories(): Promise<Category[]> {
   return result.rows;
 }
 
+function toDisplayPost(post: BlogPost): DisplayPost {
+  const primaryCategory = post.categories?.[0]?.name || "Culture";
+
+  return {
+    ...post,
+    eyebrow: primaryCategory,
+    byline: "By The Lowe Report",
+    href: `/newsletter/${post.slug}`,
+  };
+}
+
+function StoryLink({
+  post,
+  className,
+  children,
+}: {
+  post: DisplayPost;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  if (!post.href) {
+    return <article className={className}>{children}</article>;
+  }
+
+  return (
+    <Link href={post.href} className={className}>
+      {children}
+    </Link>
+  );
+}
+
+function StoryImage({ post, className }: { post: DisplayPost; className: string }) {
+  return (
+    <div
+      className={`bg-cover bg-center bg-gray-200 ${className}`}
+      style={{
+        backgroundImage: post.featured_image_url ? `url('${post.featured_image_url}')` : undefined,
+      }}
+    />
+  );
+}
+
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-black">
+      {children}
+    </p>
+  );
+}
+
+function Byline({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-black">
+      {children}
+    </p>
+  );
+}
+
 export default async function NewsletterPage({
   searchParams,
 }: {
   searchParams: Promise<{ category?: string; page?: string }>;
 }) {
   const { category, page } = await searchParams;
-  const currentPage = Math.max(1, parseInt(page || '1'));
-  const { posts, totalPages, totalCount } = await getBlogPosts(category, currentPage);
+  const currentPage = Math.max(1, parseInt(page || "1"));
+  const { posts, totalPages } = await getBlogPosts(category, currentPage);
   const categories = await getCategories();
-
+  const displayPosts = posts.length > 0 ? posts.map(toDisplayPost) : fallbackPosts;
+  const leadPost = displayPosts[0];
+  const leftPosts = displayPosts.slice(1, 3);
+  const railPosts = displayPosts.slice(3, 8);
+  const belowPosts = displayPosts.slice(1);
+  const categoryNav = categories.length > 0
+    ? categories
+    : [
+        { id: -1, name: "Style", slug: "style", post_count: 0 },
+        { id: -2, name: "Culture", slug: "culture", post_count: 0 },
+        { id: -3, name: "Business", slug: "business", post_count: 0 },
+        { id: -4, name: "Media", slug: "media", post_count: 0 },
+      ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div 
-        className="relative h-[400px] flex items-center justify-center bg-cover bg-center"
-        style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070')",
-        }}
-      >
-        <div className="absolute inset-0 bg-black/50"></div>
-        <div className="relative z-10 text-center text-white px-4">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">ARTICLES</h1>
-          <p className="text-xl md:text-2xl">Join thousands of creators building their empire</p>
+    <div className="bg-white text-black">
+      <section className="border-b border-gray-200">
+        <div className="mx-auto max-w-7xl px-4 py-6 md:px-6">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-700">
+            {categoryNav.map((cat) => (
+              <Link
+                key={cat.id}
+                href={cat.post_count > 0 ? `/newsletter?category=${cat.slug}` : "/newsletter"}
+                className={category === cat.slug ? "text-orange-600" : "hover:text-orange-600"}
+              >
+                {cat.name}
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="container mx-auto px-4 py-16">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content - Blog Posts */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Category Filter */}
-            {categories.length > 0 && (
-              <CategoryFilter categories={categories} selectedCategory={category} />
-            )}
+      <main className="mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-16">
+        <div className="grid gap-10 lg:grid-cols-[0.95fr_2fr_0.95fr] lg:gap-8">
+          <div className="space-y-10">
+            {leftPosts.map((post) => (
+              <StoryLink key={post.id} post={post} className="group block text-center">
+                <StoryImage post={post} className="mb-5 aspect-[4/5] w-full" />
+                <Eyebrow>{post.eyebrow}</Eyebrow>
+                <h2 className="text-2xl font-semibold leading-tight tracking-tight group-hover:text-orange-600">
+                  {post.title}
+                </h2>
+                <Byline>{post.byline}</Byline>
+              </StoryLink>
+            ))}
+          </div>
 
+          <StoryLink post={leadPost} className="group block">
+            <StoryImage post={leadPost} className="aspect-[4/5] w-full md:aspect-[5/4] lg:aspect-[4/5]" />
+            <div className="mx-auto max-w-3xl pt-6 text-center">
+              <Eyebrow>{leadPost.eyebrow}</Eyebrow>
+              <h1 className="font-serif text-4xl font-semibold leading-none tracking-tight group-hover:text-orange-600 md:text-6xl">
+                {leadPost.title}
+              </h1>
+              {leadPost.excerpt && (
+                <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-gray-600 md:text-lg">
+                  {leadPost.excerpt}
+                </p>
+              )}
+              <Byline>{leadPost.byline}</Byline>
+            </div>
+          </StoryLink>
+
+          <aside className="space-y-8">
+            {railPosts.map((post) => (
+              <StoryLink key={post.id} post={post} className="group grid grid-cols-[1fr_88px] gap-5 border-b border-gray-200 pb-8">
+                <div>
+                  <Eyebrow>{post.eyebrow}</Eyebrow>
+                  <h2 className="text-xl font-semibold leading-tight tracking-tight group-hover:text-orange-600">
+                    {post.title}
+                  </h2>
+                  <Byline>{post.byline}</Byline>
+                </div>
+                <StoryImage post={post} className="aspect-[4/5] w-full" />
+              </StoryLink>
+            ))}
+          </aside>
+        </div>
+
+        <section className="mt-16 border-t border-black pt-8">
+          <div className="mb-8 flex items-end justify-between gap-4">
             <div>
-              <h2 className="text-3xl font-bold mb-6">
-                {category 
-                  ? `${categories.find(c => c.slug === category)?.name || 'Category'} Articles`
-                  : 'Latest Articles'
-                }
-              </h2>
-              
-              <NewsletterSearchList 
-                posts={posts}
-                totalCount={totalCount}
-                totalPages={totalPages}
-                currentPage={currentPage}
-                category={category}
-              />
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Latest</p>
+              <h2 className="mt-2 font-serif text-4xl font-semibold tracking-tight">The Briefing</h2>
             </div>
+            {totalPages > 1 && (
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                Page {currentPage} of {totalPages}
+              </p>
+            )}
           </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-8 space-y-6">
-              <Card className="border-2 border-orange-500">
-                <CardHeader>
-                  <CardTitle className="text-2xl">STAY IN THE LOOP</CardTitle>
-                  <CardDescription>
-                    Get exclusive tools, early access, and insider tips delivered weekly.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <NewsletterSignup />
-                </CardContent>
-              </Card>
-
-              {/* Categories Sidebar */}
-              {categories.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Categories</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {categories.map((cat) => (
-                        <Link 
-                          key={cat.id} 
-                          href={`/newsletter?category=${cat.slug}`}
-                          className={`block px-3 py-2 rounded hover:bg-gray-100 transition-colors ${
-                            category === cat.slug ? 'bg-orange-100 text-orange-800 font-medium' : ''
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span>{cat.name}</span>
-                            <Badge variant="outline">{cat.post_count}</Badge>
-                          </div>
-                        </Link>
-                      ))}
-                      {category && (
-                        <Link 
-                          href="/newsletter"
-                          className="block px-3 py-2 text-sm text-orange-600 hover:text-orange-700 font-medium"
-                        >
-                          ← View All
-                        </Link>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Popular Posts */}
-              {posts.length > 3 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Popular Posts</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {[...posts]
-                        .sort((a, b) => b.view_count - a.view_count)
-                        .slice(0, 5)
-                        .map((post) => (
-                          <Link 
-                            key={post.id} 
-                            href={`/newsletter/${post.slug}`}
-                            className="block hover:text-orange-600 transition-colors"
-                          >
-                            <div className="text-sm font-medium line-clamp-2">
-                              {post.title}
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {post.view_count} views
-                            </div>
-                          </Link>
-                        ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+          <div className="grid gap-8 md:grid-cols-3">
+            {belowPosts.slice(0, 6).map((post) => (
+              <StoryLink key={`briefing-${post.id}`} post={post} className="group block border-t border-gray-200 pt-5">
+                <Eyebrow>{post.eyebrow}</Eyebrow>
+                <h3 className="text-2xl font-semibold leading-tight tracking-tight group-hover:text-orange-600">
+                  {post.title}
+                </h3>
+                {post.excerpt && (
+                  <p className="mt-3 line-clamp-3 text-sm leading-6 text-gray-600">{post.excerpt}</p>
+                )}
+              </StoryLink>
+            ))}
           </div>
-        </div>
-      </div>
+        </section>
+
+        {posts.length === 0 && (
+          <div className="mt-12 border border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-600">
+            The local development database is ready, but no published articles have been added yet.
+          </div>
+        )}
+      </main>
     </div>
   );
 }

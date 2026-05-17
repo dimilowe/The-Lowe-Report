@@ -1,4 +1,5 @@
 import { Pool, neonConfig } from '@neondatabase/serverless';
+import { Pool as PgPool } from "pg";
 import ws from "ws";
 import { recordDbQuery } from "@/lib/ops/metrics";
 
@@ -56,6 +57,15 @@ function safeDbFingerprint(connectionString: string): { host: string; database: 
   }
 }
 
+function isLocalDatabaseUrl(connectionString: string): boolean {
+  try {
+    const parsed = new URL(connectionString);
+    return parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
 const runtimeDb = resolveRuntimeDatabaseUrl();
 
 if (!runtimeDb) {
@@ -64,8 +74,6 @@ if (!runtimeDb) {
   );
 }
 
-// Use Neon serverless driver for both dev and production
-// This ensures one shared database across all environments
 function readPositiveIntEnv(name: string, fallback: number): number {
   const raw = process.env[name];
   if (!raw) return fallback;
@@ -78,7 +86,7 @@ const defaultPoolMax = isProductionBuild ? 2 : 10;
 const defaultConnectTimeoutMs = isProductionBuild ? 10000 : 30000;
 const defaultIdleTimeoutMs = 30000;
 
-export const pool = new Pool({
+const poolOptions = {
   connectionString: runtimeDb.url,
   max: readPositiveIntEnv("DB_POOL_MAX", defaultPoolMax),
   idleTimeoutMillis: readPositiveIntEnv("DB_POOL_IDLE_TIMEOUT_MS", defaultIdleTimeoutMs),
@@ -87,7 +95,11 @@ export const pool = new Pool({
     defaultConnectTimeoutMs
   ),
   allowExitOnIdle: true,
-});
+};
+
+export const pool = isLocalDatabaseUrl(runtimeDb.url)
+  ? new PgPool({ ...poolOptions, ssl: false })
+  : new Pool(poolOptions);
 
 pool.on("connect", async (client: PoolConnectClient) => {
   await client.query("SET search_path TO public");

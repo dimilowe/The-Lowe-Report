@@ -14,17 +14,17 @@ const inter = Inter({ subsets: ["latin"] });
 const SUNSET_MODE = false;
 
 export const metadata: Metadata = {
-  title: "VCM Suite - Creator Store",
-  description: "Apps, downloads, templates, and creator resources from VCM Suite.",
+  title: "The Lowe Report",
+  description: "Culture, style, and creator business coverage from The Lowe Report.",
   metadataBase: new URL(getSiteUrl()),
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "VCM Suite - Creator Store",
-    description: "Apps, downloads, templates, and creator resources from VCM Suite.",
+    title: "The Lowe Report",
+    description: "Culture, style, and creator business coverage from The Lowe Report.",
     url: "/",
-    siteName: "VCM Suite",
+    siteName: "The Lowe Report",
     type: "website",
   },
 };
