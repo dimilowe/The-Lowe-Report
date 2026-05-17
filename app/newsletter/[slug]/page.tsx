@@ -194,16 +194,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <AudioPlayer postId={post.id} />
 
           <div
-            className="prose prose-xl mt-10 max-w-none
-              prose-headings:font-serif prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-black
-              prose-h2:mt-12 prose-h2:text-4xl
-              prose-h3:mt-10 prose-h3:text-2xl
-              prose-p:my-7 prose-p:text-[1.2rem] prose-p:leading-9 prose-p:text-gray-800
-              prose-a:text-black prose-a:underline prose-a:decoration-gray-300 prose-a:underline-offset-4 hover:prose-a:text-orange-600
-              prose-strong:text-black
-              prose-blockquote:border-l-black prose-blockquote:text-gray-700
-              prose-img:my-10 prose-img:w-full prose-img:rounded-none
-              prose-li:text-gray-800"
+            className="blog-article-body mt-10 max-w-none"
             dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
           />
         </main>
