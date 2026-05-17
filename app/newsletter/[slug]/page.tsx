@@ -4,8 +4,23 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { AudioPlayer } from "@/components/AudioPlayer";
 
+function isHTML(str: string): boolean {
+  return /<[a-z][\s\S]*>/i.test(str);
+}
+
 function formatContent(content: string): string {
-  return content;
+  if (isHTML(content)) {
+    return content;
+  }
+  // Plain text: convert double newlines to paragraphs, single newlines to <br>
+  return content
+    .split(/\n\n+/)
+    .map((para) => {
+      const inner = para.trim().replace(/\n/g, '<br />');
+      return inner ? `<p>${inner}</p>` : '';
+    })
+    .filter(Boolean)
+    .join('\n');
 }
 
 interface BlogPost {
