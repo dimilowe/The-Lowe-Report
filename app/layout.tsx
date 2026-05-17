@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  verification: {
+    google: "zoAGLmXBDcCSAHWxGPaxlAQSgpsh2ScnkmVuMQ7YYZQ",
+  },
   openGraph: {
     title: "The Lowe Report",
     description: "Culture, style, and creator business coverage from The Lowe Report.",
