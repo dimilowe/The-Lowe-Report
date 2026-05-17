@@ -181,12 +181,12 @@ export function AudioPlayer({ postId }: AudioPlayerProps) {
   }, [audioUrl, playbackSpeed]);
 
   return (
-    <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-400 rounded-lg p-6 shadow-md">
-      <div className="flex items-center gap-4">
-        <Volume2 className="w-6 h-6 text-orange-600" />
+    <div className="border-y border-black bg-white py-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <Volume2 className="h-5 w-5 text-black" />
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 mb-1">Listen to Article</h3>
-          <p className="text-sm text-gray-600">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-black">Listen to Article</h3>
+          <p className="mt-1 text-sm text-gray-500">
             {duration > 0 ? `${formatTime(duration)} • ` : ''}Premium AI narration
           </p>
         </div>
@@ -194,8 +194,8 @@ export function AudioPlayer({ postId }: AudioPlayerProps) {
         <Button
           onClick={togglePlayPause}
           disabled={isLoading}
-          className="bg-orange-500 hover:bg-orange-600 text-white px-6"
-          size="lg"
+          className="rounded-none bg-black px-6 text-xs font-semibold uppercase tracking-[0.16em] text-white hover:bg-orange-600"
+          size="default"
         >
           {isLoading ? (
             <>
@@ -222,15 +222,15 @@ export function AudioPlayer({ postId }: AudioPlayerProps) {
         </div>
       )}
 
-      <div className="mt-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="mt-5">
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
           Voice
         </label>
         <select
           value={selectedVoice}
           onChange={(e) => handleVoiceChange(e.target.value)}
           disabled={isLoading}
-          className="w-full px-4 py-2 bg-white border-2 border-orange-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full border border-gray-300 bg-white px-3 py-2 text-sm text-black focus:border-black focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         >
           {voices.map((voice) => (
             <option key={voice.id} value={voice.id}>
@@ -262,14 +262,14 @@ export function AudioPlayer({ postId }: AudioPlayerProps) {
               max={duration || 0}
               value={currentTime}
               onChange={handleSeek}
-              className="w-full h-2 bg-orange-200 rounded-lg appearance-none cursor-pointer accent-orange-500"
+              className="h-1 w-full cursor-pointer appearance-none bg-gray-200 accent-black"
             />
             
             <div className="flex items-center justify-between text-sm text-gray-600">
               <span>{formatTime(currentTime)}</span>
               <button
                 onClick={changeSpeed}
-                className="px-3 py-1 bg-orange-100 hover:bg-orange-200 rounded-full text-orange-700 font-medium transition-colors"
+                className="border border-gray-300 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-black transition-colors hover:border-black"
               >
                 {playbackSpeed}x
               </button>

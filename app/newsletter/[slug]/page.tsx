@@ -2,13 +2,9 @@ import { query } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
-import { NewsletterSignup } from "@/components/NewsletterSignup";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Calendar, Eye, GraduationCap } from "lucide-react";
 import { AudioPlayer } from "@/components/AudioPlayer";
 
 function formatContent(content: string): string {
-  // Tiptap already outputs HTML, so just return it as-is
   return content;
 }
 
@@ -25,7 +21,7 @@ interface BlogPost {
   is_indexed: boolean;
 }
 
-interface RecommendedCourse {
+interface RecommendedProduct {
   id: number;
   slug: string;
   name: string;
@@ -37,16 +33,16 @@ interface RecommendedCourse {
 async function getBlogPost(slug: string): Promise<BlogPost | null> {
   const result = await query(
     `SELECT id, title, slug, content, excerpt, meta_description, featured_image_url, published_at, view_count, is_indexed
-     FROM blog_posts 
+     FROM blog_posts
      WHERE slug = $1 AND published_at IS NOT NULL AND published_at <= NOW()
      LIMIT 1`,
     [slug]
   );
-  
+
   if (result.rows.length === 0) {
     return null;
   }
-  
+
   return result.rows[0];
 }
 
@@ -60,7 +56,7 @@ async function incrementViewCount(postId: number): Promise<void> {
 async function getRelatedPosts(currentPostId: number): Promise<BlogPost[]> {
   const result = await query(
     `SELECT id, title, slug, excerpt, featured_image_url, published_at
-     FROM blog_posts 
+     FROM blog_posts
      WHERE id != $1 AND published_at IS NOT NULL AND published_at <= NOW()
      ORDER BY published_at DESC
      LIMIT 3`,
@@ -69,12 +65,12 @@ async function getRelatedPosts(currentPostId: number): Promise<BlogPost[]> {
   return result.rows;
 }
 
-async function getRecommendedCourses(): Promise<RecommendedCourse[]> {
+async function getRecommendedProducts(): Promise<RecommendedProduct[]> {
   const result = await query(
     `SELECT id, slug, name, thumbnail_url, price_type, price
      FROM products
      WHERE visibility = 'public'
-       AND type IN ('video', 'course')
+       AND type != 'invisible'
      ORDER BY created_at DESC
      LIMIT 3`
   );
@@ -84,211 +80,188 @@ async function getRecommendedCourses(): Promise<RecommendedCourse[]> {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const post = await getBlogPost(slug);
-  
+
   if (!post) {
     return {
-      title: 'Post Not Found',
+      title: "Post Not Found",
     };
   }
-  
+
   return {
-    title: `${post.title} | VCM Suite`,
+    title: `${post.title} | The Lowe Report`,
     description: post.meta_description || post.excerpt || post.title,
-    robots: post.is_indexed 
+    robots: post.is_indexed
       ? { index: true, follow: true }
       : { index: false, follow: false },
     openGraph: {
       title: post.title,
       description: post.meta_description || post.excerpt || post.title,
-      type: 'article',
+      type: "article",
       publishedTime: post.published_at.toISOString(),
       images: post.featured_image_url ? [post.featured_image_url] : [],
+      siteName: "The Lowe Report",
     },
   };
+}
+
+function formatDate(date: Date) {
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function ProductPrice({ product }: { product: RecommendedProduct }) {
+  if (product.price_type === "free") return <span>Free</span>;
+  if (!product.price) return null;
+  return <span>${(product.price / 100).toFixed(2)}</span>;
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const post = await getBlogPost(slug);
-  
+
   if (!post) {
     notFound();
   }
-  
-  // Increment view count only once during page render
-  await incrementViewCount(post.id);
-  
-  const relatedPosts = await getRelatedPosts(post.id);
-  const recommendedCourses = await getRecommendedCourses();
-  
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Featured Image */}
-      {post.featured_image_url && (
-        <div 
-          className="h-[400px] bg-cover bg-center relative"
-          style={{ backgroundImage: `url('${post.featured_image_url}')` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60" />
-        </div>
-      )}
-      
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          {/* Back Button */}
-          <Link 
-            href="/newsletter" 
-            className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 mb-8 font-medium"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Blog
-          </Link>
-          
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Main Content */}
-            <article className="lg:col-span-2 bg-white rounded-lg shadow-sm p-8 md:p-12">
-              <header className="mb-8">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-                  {post.title}
-                </h1>
-                
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    <time dateTime={new Date(post.published_at).toISOString()}>
-                      {new Date(post.published_at).toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: 'numeric',
-                        year: 'numeric'
-                      })}
-                    </time>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Eye className="w-4 h-4" />
-                    <span>{post.view_count} views</span>
-                  </div>
-                </div>
-              </header>
-              
-              {/* Audio Player */}
-              <div className="mb-8">
-                <AudioPlayer postId={post.id} />
-              </div>
-              
-              <div 
-                className="prose prose-lg max-w-none 
-                  prose-headings:text-gray-900 prose-headings:font-bold prose-headings:mt-8 prose-headings:mb-4
-                  prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-6 prose-p:mt-0
-                  prose-a:text-orange-600 hover:prose-a:text-orange-700 
-                  prose-strong:text-gray-900 prose-strong:font-semibold
-                  prose-ul:my-6 prose-ul:space-y-2
-                  prose-ol:my-6 prose-ol:space-y-2
-                  prose-li:text-gray-700
-                  [&>p]:mb-6 [&>p]:mt-0"
-                dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
-              />
-              
-              {/* Newsletter CTA */}
-              <div className="mt-12 pt-8 border-t">
-                <Card className="bg-orange-50 border-orange-200">
-                  <CardContent className="pt-6">
-                    <h3 className="text-2xl font-bold mb-2">Want more content like this?</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Join our newsletter for weekly insights delivered to your inbox.
-                    </p>
-                    <NewsletterSignup />
-                  </CardContent>
-                </Card>
-              </div>
-            </article>
-            
-            {/* Sidebar */}
-            <aside className="lg:col-span-1">
-              <div className="space-y-6">
-                {/* Related Courses */}
-                <div className="bg-white rounded-lg border-2 border-orange-500 overflow-hidden">
-                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <GraduationCap className="w-5 h-5 text-white" />
-                      <h3 className="text-lg font-bold text-white">Recommended Courses</h3>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <p className="text-sm text-gray-600 mb-3">
-                      Keep learning with these related courses.
-                    </p>
-                    {recommendedCourses.length > 0 ? (
-                      <div className="space-y-2 mb-4">
-                        {recommendedCourses.map((course) => (
-                          <Link
-                            key={course.id}
-                            href={`/products/${course.slug}`}
-                            className="flex items-center justify-between gap-2 px-3 py-2 bg-gray-100 hover:bg-orange-100 hover:text-orange-700 text-gray-700 rounded-lg text-sm font-medium transition-colors"
-                          >
-                            <span className="line-clamp-1">{course.name}</span>
-                            <span className="shrink-0 text-xs font-semibold text-orange-700 bg-orange-50 px-2 py-0.5 rounded-full">
-                              {course.price_type === "free"
-                                ? "Free"
-                                : `$${((course.price || 0) / 100).toFixed(2)}`}
-                            </span>
-                          </Link>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-gray-600 mb-4">
-                        Course recommendations will appear here once courses are published.
-                      </p>
-                    )}
-                    <Link
-                      href="/store"
-                      className="block w-full text-center px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors"
-                    >
-                      Browse Courses
-                    </Link>
-                  </div>
-                </div>
 
-                {/* Related Posts */}
-                {relatedPosts.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-xl">Related Articles</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {relatedPosts.map((relatedPost) => (
-                          <Link 
-                            key={relatedPost.id} 
-                            href={`/newsletter/${relatedPost.slug}`}
-                            className="block group"
-                          >
-                            {relatedPost.featured_image_url && (
-                              <div 
-                                className="w-full h-32 bg-cover bg-center rounded-md mb-2"
-                                style={{ backgroundImage: `url('${relatedPost.featured_image_url}')` }}
-                              />
-                            )}
-                            <h4 className="font-semibold group-hover:text-orange-600 transition-colors line-clamp-2">
-                              {relatedPost.title}
-                            </h4>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {new Date(relatedPost.published_at).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric'
-                              })}
-                            </p>
-                          </Link>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </aside>
-          </div>
+  await incrementViewCount(post.id);
+
+  const relatedPosts = await getRelatedPosts(post.id);
+  const recommendedProducts = await getRecommendedProducts();
+
+  return (
+    <article className="bg-white text-black">
+      <header className="mx-auto max-w-5xl px-4 py-12 text-center md:px-6 md:py-16">
+        <Link
+          href="/newsletter"
+          className="mb-8 inline-flex text-xs font-semibold uppercase tracking-[0.22em] text-gray-500 transition-colors hover:text-orange-600"
+        >
+          Articles
+        </Link>
+
+        <p className="mb-5 text-xs font-semibold uppercase tracking-[0.24em] text-black">
+          The Lowe Report
+        </p>
+        <h1 className="mx-auto max-w-4xl font-serif text-5xl font-semibold leading-none tracking-tight md:text-7xl">
+          {post.title}
+        </h1>
+        {post.excerpt && (
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 md:text-xl">
+            {post.excerpt}
+          </p>
+        )}
+
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+          <span>By The Lowe Report</span>
+          <span>{formatDate(post.published_at)}</span>
+          <span>{post.view_count} views</span>
         </div>
+      </header>
+
+      {post.featured_image_url && (
+        <figure className="mx-auto max-w-7xl px-4 md:px-6">
+          <div
+            className="aspect-[16/9] w-full bg-gray-200 bg-cover bg-center md:aspect-[21/9]"
+            style={{ backgroundImage: `url('${post.featured_image_url}')` }}
+          />
+        </figure>
+      )}
+
+      <div className="mx-auto grid max-w-7xl gap-12 px-4 py-12 md:px-6 lg:grid-cols-[1fr_720px_1fr]">
+        <aside className="hidden lg:block">
+          <div className="sticky top-28 border-t border-black pt-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-black">Filed Under</p>
+            <p className="mt-3 text-sm leading-6 text-gray-600">Culture, style, media, and the business of modern influence.</p>
+          </div>
+        </aside>
+
+        <main>
+          <AudioPlayer postId={post.id} />
+
+          <div
+            className="prose prose-xl mt-10 max-w-none
+              prose-headings:font-serif prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-black
+              prose-h2:mt-12 prose-h2:text-4xl
+              prose-h3:mt-10 prose-h3:text-2xl
+              prose-p:my-7 prose-p:text-[1.2rem] prose-p:leading-9 prose-p:text-gray-800
+              prose-a:text-black prose-a:underline prose-a:decoration-gray-300 prose-a:underline-offset-4 hover:prose-a:text-orange-600
+              prose-strong:text-black
+              prose-blockquote:border-l-black prose-blockquote:text-gray-700
+              prose-img:my-10 prose-img:w-full prose-img:rounded-none
+              prose-li:text-gray-800"
+            dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
+          />
+        </main>
+
+        <aside className="hidden lg:block">
+          {recommendedProducts.length > 0 && (
+            <div className="sticky top-28 border-t border-black pt-5">
+              <p className="mb-5 text-xs font-semibold uppercase tracking-[0.22em] text-black">Recommended Products</p>
+              <div className="space-y-5">
+                {recommendedProducts.map((product) => (
+                  <Link key={product.id} href={`/products/${product.slug}`} className="group block border-b border-gray-200 pb-5">
+                    <h3 className="text-lg font-semibold leading-tight group-hover:text-orange-600">{product.name}</h3>
+                    <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
+                      <ProductPrice product={product} />
+                    </p>
+                  </Link>
+                ))}
+              </div>
+              <Link href="/store" className="mt-6 inline-flex text-xs font-semibold uppercase tracking-[0.18em] text-black underline underline-offset-4 hover:text-orange-600">
+                Browse Products
+              </Link>
+            </div>
+          )}
+        </aside>
       </div>
-    </div>
+
+      {(relatedPosts.length > 0 || recommendedProducts.length > 0) && (
+        <section className="border-t border-black">
+          <div className="mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14">
+            {relatedPosts.length > 0 && (
+              <>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Recommended Articles</p>
+                <div className="mt-6 grid gap-8 md:grid-cols-3">
+                  {relatedPosts.map((relatedPost) => (
+                    <Link key={relatedPost.id} href={`/newsletter/${relatedPost.slug}`} className="group block border-t border-gray-200 pt-5">
+                      {relatedPost.featured_image_url && (
+                        <div
+                          className="mb-5 aspect-[4/3] bg-gray-200 bg-cover bg-center"
+                          style={{ backgroundImage: `url('${relatedPost.featured_image_url}')` }}
+                        />
+                      )}
+                      <h2 className="text-2xl font-semibold leading-tight tracking-tight group-hover:text-orange-600">
+                        {relatedPost.title}
+                      </h2>
+                      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                        {formatDate(relatedPost.published_at)}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {recommendedProducts.length > 0 && (
+              <div className="mt-12 border-t border-gray-200 pt-8 lg:hidden">
+                <p className="mb-5 text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Recommended Products</p>
+                <div className="grid gap-5 sm:grid-cols-3">
+                  {recommendedProducts.map((product) => (
+                    <Link key={product.id} href={`/products/${product.slug}`} className="group block">
+                      <h3 className="text-lg font-semibold leading-tight group-hover:text-orange-600">{product.name}</h3>
+                      <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
+                        <ProductPrice product={product} />
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+    </article>
   );
 }
