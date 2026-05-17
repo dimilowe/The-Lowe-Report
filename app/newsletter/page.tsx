@@ -314,8 +314,9 @@ export default async function NewsletterPage({
       </section>
 
       <main className="mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-16">
-        <div className="grid gap-10 lg:grid-cols-[0.95fr_2fr_0.95fr] lg:gap-8">
-          <div className="space-y-10">
+        <div className={`grid gap-10 lg:gap-8 ${railPosts.length > 0 ? 'lg:grid-cols-[0.95fr_2fr_0.95fr]' : 'lg:grid-cols-[0.95fr_2fr]'}`}>
+          {/* Left sidebar — appears second on mobile via order */}
+          <div className="order-2 space-y-10 lg:order-1">
             {leftPosts.map((post) => (
               <StoryLink key={post.id} post={post} className="group block text-center">
                 <StoryImage post={post} className="mb-5 aspect-[4/5] w-full" />
@@ -328,7 +329,8 @@ export default async function NewsletterPage({
             ))}
           </div>
 
-          <StoryLink post={leadPost} className="group block">
+          {/* Center feature — appears first on mobile via order */}
+          <StoryLink post={leadPost} className="group order-1 block lg:order-2">
             <StoryImage post={leadPost} className="aspect-[4/5] w-full md:aspect-[5/4] lg:aspect-[4/5]" />
             <div className="mx-auto max-w-3xl pt-6 text-center">
               <Eyebrow>{leadPost.eyebrow}</Eyebrow>
@@ -344,20 +346,23 @@ export default async function NewsletterPage({
             </div>
           </StoryLink>
 
-          <aside className="space-y-8">
-            {railPosts.map((post) => (
-              <StoryLink key={post.id} post={post} className="group grid grid-cols-[1fr_88px] gap-5 border-b border-gray-200 pb-8">
-                <div>
-                  <Eyebrow>{post.eyebrow}</Eyebrow>
-                  <h2 className="text-xl font-semibold leading-tight tracking-tight group-hover:text-orange-600">
-                    {post.title}
-                  </h2>
-                  <Byline>{post.byline}</Byline>
-                </div>
-                <StoryImage post={post} className="aspect-[4/5] w-full" />
-              </StoryLink>
-            ))}
-          </aside>
+          {/* Right rail — only rendered when there are enough posts */}
+          {railPosts.length > 0 && (
+            <aside className="order-3 space-y-8 lg:order-3">
+              {railPosts.map((post) => (
+                <StoryLink key={post.id} post={post} className="group grid grid-cols-[1fr_88px] gap-5 border-b border-gray-200 pb-8">
+                  <div>
+                    <Eyebrow>{post.eyebrow}</Eyebrow>
+                    <h2 className="text-xl font-semibold leading-tight tracking-tight group-hover:text-orange-600">
+                      {post.title}
+                    </h2>
+                    <Byline>{post.byline}</Byline>
+                  </div>
+                  <StoryImage post={post} className="aspect-[4/5] w-full" />
+                </StoryLink>
+              ))}
+            </aside>
+          )}
         </div>
 
         <section className="mt-16 border-t border-black pt-8">
