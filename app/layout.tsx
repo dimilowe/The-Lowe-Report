@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
+import { Suspense } from "react";
 import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { CartProvider } from "@/contexts/CartContext";
@@ -10,6 +11,7 @@ import FloatingToolsButton from "@/components/FloatingToolsButton";
 import SiteFooter from "@/components/SiteFooter";
 import { FeedbackLauncherButton } from "@/components/FeedbackLauncherButton";
 import { getSiteUrl } from "@/lib/site-url";
+import GoogleAnalyticsTracker from "@/components/GoogleAnalyticsTracker";
 
 const inter = Inter({ subsets: ["latin"] });
 const SUNSET_MODE = false;
@@ -53,6 +55,9 @@ export default function RootLayout({
             gtag('config', 'G-KFVT6C2YR0');
           `}
         </Script>
+        <Suspense fallback={null}>
+          <GoogleAnalyticsTracker />
+        </Suspense>
         {SUNSET_MODE ? (
           <main className="min-h-screen">{children}</main>
         ) : (
