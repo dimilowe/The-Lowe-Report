@@ -8,7 +8,7 @@ export function getSiteUrl(): string {
   const fromReplit = process.env.REPLIT_DOMAINS?.trim();
   if (fromReplit) return normalizeOrigin(`https://${fromReplit}`);
 
-  return "https://vcmsuite.com";
+  return "https://thelowereport.com";
 }
 
 function normalizeOrigin(input: string): string {
