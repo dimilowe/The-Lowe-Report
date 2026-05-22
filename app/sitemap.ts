@@ -26,12 +26,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.8,
     },
-    {
-      url: `${baseUrl}/about`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
   ];
 
   // Published blog posts
@@ -42,6 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
        FROM blog_posts
        WHERE published_at IS NOT NULL AND published_at <= NOW()
          AND (unlisted IS NULL OR unlisted = false)
+         AND slug != 'qr-code-monkey-vs-qr-social-which-is-better-for-your-business'
        ORDER BY published_at DESC`
     );
     blogPages = result.rows.map((post) => ({
