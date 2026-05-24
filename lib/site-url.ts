@@ -14,8 +14,11 @@ export function getSiteUrl(): string {
 function normalizeOrigin(input: string): string {
   try {
     const url = new URL(input);
+    url.protocol = "https:";
     return url.origin;
   } catch {
-    return input.replace(/\/+$/, "");
+    const cleaned = input.replace(/\/+$/, "");
+    if (!cleaned.startsWith("http")) return `https://${cleaned}`;
+    return cleaned.replace(/^http:\/\//, "https://");
   }
 }
