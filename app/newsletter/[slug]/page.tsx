@@ -103,9 +103,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${post.title} | The Lowe Report`,
     description: post.meta_description || post.excerpt || post.title,
-    robots: post.is_indexed
-      ? { index: true, follow: true }
-      : { index: false, follow: false },
+    robots: { index: true, follow: true },
+    alternates: {
+      canonical: `/newsletter/${post.slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.meta_description || post.excerpt || post.title,

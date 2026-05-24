@@ -9,6 +9,10 @@ const POSTS_PER_PAGE = 10;
 export const metadata: Metadata = {
   title: "The Lowe Report",
   description: "Read the latest reporting, interviews, culture, style, and creator business coverage from The Lowe Report.",
+  alternates: {
+    canonical: "/newsletter",
+  },
+  robots: { index: true, follow: true },
   openGraph: {
     title: "The Lowe Report",
     description: "Read the latest reporting, interviews, culture, style, and creator business coverage.",
