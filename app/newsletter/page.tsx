@@ -197,6 +197,34 @@ async function getBlogPosts(categorySlug?: string, page: number = 1): Promise<Pa
   };
 }
 
+async function getPopularPosts(): Promise<BlogPost[]> {
+  const result = await query(
+    `SELECT
+      bp.id,
+      bp.title,
+      bp.slug,
+      bp.excerpt,
+      bp.featured_image_url,
+      bp.published_at,
+      bp.view_count,
+      COALESCE(
+        json_agg(
+          json_build_object('id', c.id, 'name', c.name, 'slug', c.slug)
+        ) FILTER (WHERE c.id IS NOT NULL),
+        '[]'
+      ) as categories
+     FROM blog_posts bp
+     LEFT JOIN blog_post_categories bpc ON bp.id = bpc.blog_post_id
+     LEFT JOIN categories c ON bpc.category_id = c.id
+     WHERE bp.published_at IS NOT NULL AND bp.published_at <= NOW()
+       AND (bp.unlisted IS NULL OR bp.unlisted = false)
+     GROUP BY bp.id
+     ORDER BY bp.view_count DESC, bp.published_at DESC
+     LIMIT 6`
+  );
+  return result.rows;
+}
+
 async function getCategories(): Promise<Category[]> {
   const result = await query(
     `SELECT
@@ -283,13 +311,16 @@ export default async function NewsletterPage({
 }) {
   const { category, page } = await searchParams;
   const currentPage = Math.max(1, parseInt(page || "1"));
-  const { posts, totalPages } = await getBlogPosts(category, currentPage);
-  const categories = await getCategories();
+  const [{ posts, totalPages }, categories, popularRaw] = await Promise.all([
+    getBlogPosts(category, currentPage),
+    getCategories(),
+    getPopularPosts(),
+  ]);
   const displayPosts = posts.length > 0 ? posts.map(toDisplayPost) : fallbackPosts;
   const leadPost = displayPosts[0];
   const leftPosts = displayPosts.slice(1, 3);
   const railPosts = displayPosts.slice(3, 8);
-  const belowPosts = displayPosts.slice(1);
+  const popularPosts = popularRaw.length > 0 ? popularRaw.map(toDisplayPost) : displayPosts.slice(1, 7);
   const categoryNav = categories.length > 0
     ? categories
     : [
@@ -370,20 +401,13 @@ export default async function NewsletterPage({
         </div>
 
         <section className="mt-16 border-t border-black pt-8">
-          <div className="mb-8 flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Latest</p>
-              <h2 className="mt-2 font-serif text-4xl font-semibold tracking-tight">The Briefing</h2>
-            </div>
-            {totalPages > 1 && (
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-                Page {currentPage} of {totalPages}
-              </p>
-            )}
+          <div className="mb-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Most Read</p>
+            <h2 className="mt-2 font-serif text-4xl font-semibold tracking-tight">The Briefing</h2>
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
-            {belowPosts.slice(0, 6).map((post) => (
+            {popularPosts.map((post) => (
               <StoryLink key={`briefing-${post.id}`} post={post} className="group block">
                 <StoryImage post={post} className="mb-5 aspect-[16/9] w-full" />
                 <div className="border-t border-gray-200 pt-5">
