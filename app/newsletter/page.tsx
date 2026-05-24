@@ -384,14 +384,17 @@ export default async function NewsletterPage({
 
           <div className="grid gap-8 md:grid-cols-3">
             {belowPosts.slice(0, 6).map((post) => (
-              <StoryLink key={`briefing-${post.id}`} post={post} className="group block border-t border-gray-200 pt-5">
-                <Eyebrow>{post.eyebrow}</Eyebrow>
-                <h3 className="text-2xl font-semibold leading-tight tracking-tight group-hover:text-orange-600">
-                  {post.title}
-                </h3>
-                {post.excerpt && (
-                  <p className="mt-3 line-clamp-3 text-sm leading-6 text-gray-600">{post.excerpt}</p>
-                )}
+              <StoryLink key={`briefing-${post.id}`} post={post} className="group block">
+                <StoryImage post={post} className="mb-5 aspect-[16/9] w-full" />
+                <div className="border-t border-gray-200 pt-5">
+                  <Eyebrow>{post.eyebrow}</Eyebrow>
+                  <h3 className="text-2xl font-semibold leading-tight tracking-tight group-hover:text-orange-600">
+                    {post.title}
+                  </h3>
+                  {post.excerpt && (
+                    <p className="mt-3 line-clamp-3 text-sm leading-6 text-gray-600">{post.excerpt}</p>
+                  )}
+                </div>
               </StoryLink>
             ))}
           </div>
