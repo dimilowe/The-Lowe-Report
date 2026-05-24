@@ -219,7 +219,10 @@ async function getPopularPosts(): Promise<BlogPost[]> {
      WHERE bp.published_at IS NOT NULL AND bp.published_at <= NOW()
        AND (bp.unlisted IS NULL OR bp.unlisted = false)
      GROUP BY bp.id
-     ORDER BY bp.view_count DESC, bp.published_at DESC
+     ORDER BY (
+       bp.view_count::float /
+       GREATEST(EXTRACT(EPOCH FROM (NOW() - bp.published_at)) / 86400, 1)
+     ) DESC
      LIMIT 6`
   );
   return result.rows;
