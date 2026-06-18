@@ -32,17 +32,7 @@ function StoryRow({ story }: { story: Story }) {
   const href = `/newsletter/${story.slug}`;
 
   return (
-    <Link href={href} className="group flex gap-6 py-6 border-b border-gray-200">
-      <div
-        className="hidden flex-shrink-0 bg-cover bg-center bg-gray-200 sm:block"
-        style={{
-          width: 200,
-          height: 134,
-          backgroundImage: story.featured_image_url
-            ? `url('${story.featured_image_url}')`
-            : undefined,
-        }}
-      />
+    <Link href={href} className="group flex gap-4 py-6 border-b border-gray-200">
       <div className="min-w-0 flex-1">
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-black">
           {category}
@@ -59,6 +49,14 @@ function StoryRow({ story }: { story: Story }) {
           By The Lowe Report · {timeAgo(story.published_at)}
         </p>
       </div>
+      <div
+        className="flex-shrink-0 bg-cover bg-center bg-gray-200 w-24 h-24 sm:w-48 sm:h-32"
+        style={{
+          backgroundImage: story.featured_image_url
+            ? `url('${story.featured_image_url}')`
+            : undefined,
+        }}
+      />
     </Link>
   );
 }
