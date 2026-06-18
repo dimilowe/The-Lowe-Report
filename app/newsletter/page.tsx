@@ -1,6 +1,7 @@
 import { query } from "@/lib/db";
 import Link from "next/link";
 import { Metadata } from "next";
+import LatestStoriesSection from "@/components/LatestStoriesSection";
 
 export const revalidate = 60;
 
@@ -470,37 +471,19 @@ export default async function NewsletterPage({
           </div>
         </section>
 
-        <section className="mt-16 border-t border-black pt-8">
-          <h2 className="mb-8 font-serif text-4xl font-semibold tracking-tight">Latest Stories</h2>
-          <div className="divide-y divide-gray-200">
-            {latestStories.map((post) => (
-              <StoryLink key={`latest-${post.id}`} post={post} className="group flex gap-6 py-6">
-                <div
-                  className="hidden flex-shrink-0 bg-cover bg-center bg-gray-200 sm:block"
-                  style={{
-                    width: 200,
-                    height: 134,
-                    backgroundImage: post.featured_image_url ? `url('${post.featured_image_url}')` : undefined,
-                  }}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-black">
-                    {post.eyebrow}
-                  </p>
-                  <h3 className="text-xl font-semibold leading-snug tracking-tight group-hover:text-orange-600 md:text-2xl">
-                    {post.title}
-                  </h3>
-                  {post.excerpt && (
-                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-600">{post.excerpt}</p>
-                  )}
-                  <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
-                    By The Lowe Report · {timeAgo(new Date(post.published_at))}
-                  </p>
-                </div>
-              </StoryLink>
-            ))}
-          </div>
-        </section>
+        <LatestStoriesSection
+          initialStories={latestStories.map((p) => ({
+            id: p.id,
+            title: p.title,
+            slug: p.slug,
+            excerpt: p.excerpt,
+            featured_image_url: p.featured_image_url,
+            published_at: new Date(p.published_at).toISOString(),
+            view_count: p.view_count,
+            categories: p.categories,
+          }))}
+          initialHasMore={latestRaw.length === 20}
+        />
 
         {posts.length === 0 && (
           <div className="mt-12 border border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-600">
