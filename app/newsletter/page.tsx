@@ -228,6 +228,47 @@ async function getPopularPosts(): Promise<BlogPost[]> {
   return result.rows;
 }
 
+async function getLatestStories(): Promise<BlogPost[]> {
+  const result = await query(
+    `SELECT
+      bp.id,
+      bp.title,
+      bp.slug,
+      bp.excerpt,
+      bp.featured_image_url,
+      bp.published_at,
+      bp.view_count,
+      COALESCE(
+        json_agg(
+          json_build_object('id', c.id, 'name', c.name, 'slug', c.slug)
+        ) FILTER (WHERE c.id IS NOT NULL),
+        '[]'
+      ) as categories
+     FROM blog_posts bp
+     LEFT JOIN blog_post_categories bpc ON bp.id = bpc.blog_post_id
+     LEFT JOIN categories c ON bpc.category_id = c.id
+     WHERE bp.published_at IS NOT NULL AND bp.published_at <= NOW()
+       AND (bp.unlisted IS NULL OR bp.unlisted = false)
+     GROUP BY bp.id
+     ORDER BY bp.published_at DESC
+     LIMIT 20`
+  );
+  return result.rows;
+}
+
+function timeAgo(date: Date): string {
+  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  return `${months}mo ago`;
+}
+
 async function getCategories(): Promise<Category[]> {
   const result = await query(
     `SELECT
@@ -314,16 +355,18 @@ export default async function NewsletterPage({
 }) {
   const { category, page } = await searchParams;
   const currentPage = Math.max(1, parseInt(page || "1"));
-  const [{ posts, totalPages }, categories, popularRaw] = await Promise.all([
+  const [{ posts, totalPages }, categories, popularRaw, latestRaw] = await Promise.all([
     getBlogPosts(category, currentPage),
     getCategories(),
     getPopularPosts(),
+    getLatestStories(),
   ]);
   const displayPosts = posts.length > 0 ? posts.map(toDisplayPost) : fallbackPosts;
   const leadPost = displayPosts[0];
   const leftPosts = displayPosts.slice(1, 3);
   const railPosts = displayPosts.slice(3, 8);
   const popularPosts = popularRaw.length > 0 ? popularRaw.map(toDisplayPost) : displayPosts.slice(1, 7);
+  const latestStories = latestRaw.length > 0 ? latestRaw.map(toDisplayPost) : displayPosts;
   const categoryNav = categories.length > 0
     ? categories
     : [
@@ -421,6 +464,38 @@ export default async function NewsletterPage({
                   {post.excerpt && (
                     <p className="mt-3 line-clamp-3 text-sm leading-6 text-gray-600">{post.excerpt}</p>
                   )}
+                </div>
+              </StoryLink>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-16 border-t border-black pt-8">
+          <h2 className="mb-8 font-serif text-4xl font-semibold tracking-tight">Latest Stories</h2>
+          <div className="divide-y divide-gray-200">
+            {latestStories.map((post) => (
+              <StoryLink key={`latest-${post.id}`} post={post} className="group flex gap-6 py-6">
+                <div
+                  className="hidden flex-shrink-0 bg-cover bg-center bg-gray-200 sm:block"
+                  style={{
+                    width: 200,
+                    height: 134,
+                    backgroundImage: post.featured_image_url ? `url('${post.featured_image_url}')` : undefined,
+                  }}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-black">
+                    {post.eyebrow}
+                  </p>
+                  <h3 className="text-xl font-semibold leading-snug tracking-tight group-hover:text-orange-600 md:text-2xl">
+                    {post.title}
+                  </h3>
+                  {post.excerpt && (
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-600">{post.excerpt}</p>
+                  )}
+                  <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
+                    By The Lowe Report · {timeAgo(new Date(post.published_at))}
+                  </p>
                 </div>
               </StoryLink>
             ))}
