@@ -77,7 +77,7 @@ export function Navbar() {
         <div className="flex items-center justify-start">
           <Link
             href="/store"
-            className="hidden border border-black bg-black px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:bg-white hover:text-black sm:inline-flex"
+            className="inline-flex border border-black bg-black px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:bg-white hover:text-black"
           >
             Products
           </Link>
