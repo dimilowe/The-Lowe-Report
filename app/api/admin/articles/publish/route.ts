@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { getIronSession } from 'iron-session';
 import { AdminSessionData, sessionOptions } from '@/lib/admin-session';
 import { publishArticle, unpublishArticle } from '@/lib/articleGenerator';
+import { pingSearchEngines } from '@/lib/searchPings';
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,6 +40,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: `Article not found or already ${action}ed: ${slug}` },
         { status: 404 }
+      );
+    }
+
+    if (action === 'publish') {
+      pingSearchEngines(slug).catch((err) =>
+        console.warn('[publish] search ping error:', err)
       );
     }
 

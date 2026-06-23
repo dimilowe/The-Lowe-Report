@@ -43,3 +43,8 @@ build = ["sh", "-lc", "python3 -m pip install -r python/requirements.txt && pyth
 
 [objectStorage]
 defaultBucketID = "replit-objstore-622e1fe1-7db8-4567-affd-97aede2f9d66"
+
+[userenv]
+
+[userenv.shared]
+INDEXNOW_KEY = "241135c6c65f229e01be5679f61cedf6"
