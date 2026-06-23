@@ -5,11 +5,13 @@ import { Bookmark, LogOut, Menu, Search, User, X } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
+import SearchModal from "@/components/SearchModal";
 
 export function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSavedOpen, setIsSavedOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -69,6 +71,7 @@ export function Navbar() {
   }
 
   return (
+    <>
     <nav data-global-navbar="true" className="relative z-[70] border-b border-gray-200 bg-white">
       <div className="mx-auto grid max-w-7xl grid-cols-3 items-center px-4 py-4 md:px-6">
         <div className="flex items-center justify-start">
@@ -88,13 +91,13 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center justify-end gap-2">
-          <Link
-            href="/newsletter"
+          <button
+            onClick={() => setIsSearchOpen(true)}
             aria-label="Search articles"
-            className="hidden p-2 text-black transition-colors hover:text-orange-600 sm:inline-flex"
+            className="p-2 text-black transition-colors hover:text-orange-600"
           >
             <Search className="h-5 w-5" />
-          </Link>
+          </button>
 
           <div className="relative" ref={savedRef}>
             <Button
@@ -244,5 +247,8 @@ export function Navbar() {
         </div>
       )}
     </nav>
+
+    <SearchModal open={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+    </>
   );
 }
