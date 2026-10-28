@@ -1,0 +1,1 @@
+- [Dependency restoration](dependency-restoration.md) — historical locked releases may be security-blocked; restore with approved patched versions.
