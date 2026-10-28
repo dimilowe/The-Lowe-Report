@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import NewsletterPage from "./newsletter/page";
+import NewsletterPage from "@/components/NewsletterPage";
+import AdSlot from "@/components/ads/AdSlot";
 
 export const metadata: Metadata = {
   title: "The Lowe Report",
@@ -23,5 +24,17 @@ export default function HomePage({
 }: {
   searchParams: Promise<{ category?: string; page?: string }>;
 }) {
-  return <NewsletterPage searchParams={searchParams} />;
+  return (
+    <NewsletterPage
+      searchParams={searchParams}
+      afterLead={
+        <AdSlot
+          placement="tlr_home_banner"
+          refreshKey="homepage"
+          reserveHeight={280}
+          className="tlr-native-ad mx-auto my-8 w-full max-w-3xl"
+        />
+      }
+    />
+  );
 }

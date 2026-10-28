@@ -1,0 +1,11 @@
+/* Optional: import from The Lowe Report's app/globals.css, then apply
+   className="tlr-native-ad ..." to the AdSlot wrapper. */
+.tlr-native-ad {
+  --adcore-native-font: inherit;
+  --adcore-native-heading-font: Georgia, 'Times New Roman', serif;
+  --adcore-native-color: #111111;
+  --adcore-native-muted: #6b7280;
+  --adcore-native-accent: #ea580c;
+  --adcore-native-border: #e5e7eb;
+  --adcore-native-background: transparent;
+}

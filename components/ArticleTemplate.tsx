@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import ArticleAd from '@/components/ads/ArticleAd';
 import { 
   ArrowRight,
   Zap,
@@ -171,9 +172,10 @@ interface ArticleTemplateProps {
   clusterName: string;
   clusterPath: string;
   theme: ClusterTheme;
+  adsEnabled?: boolean;
 }
 
-export default function ArticleTemplate({ article, clusterName, clusterPath }: ArticleTemplateProps) {
+export default function ArticleTemplate({ article, clusterName, clusterPath, adsEnabled = true }: ArticleTemplateProps) {
   const { content } = article;
   const HeroIcon = iconMap[content.hero.icon] || Image;
   const CtaIcon = content.quickCTA?.icon ? iconMap[content.quickCTA.icon] || Zap : Zap;
@@ -304,6 +306,8 @@ export default function ArticleTemplate({ article, clusterName, clusterPath }: A
                 </div>
               </section>
             )}
+
+            <ArticleAd articleKey={`article:${article.slug}`} enabled={adsEnabled} />
 
             {content.bottomCTA && (
               <div className={`${styles.ctaBg} rounded-2xl p-8 border ${styles.ctaBorder} text-center mb-16`}>

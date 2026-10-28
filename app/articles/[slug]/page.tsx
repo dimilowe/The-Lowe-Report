@@ -1,3 +1,4 @@
+import ArticleAd from "@/components/ads/ArticleAd";
 import { query } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
@@ -213,6 +214,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           clusterName={clusterName}
           clusterPath={clusterPath}
           theme={theme}
+          adsEnabled={!isPreviewMode}
         />
       </>
     );
@@ -269,6 +271,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               )}
               
               <StyledArticleContent content={article.content} />
+              <ArticleAd articleKey={`article:${article.slug}`} enabled={!isPreviewMode} />
             </div>
           </article>
           

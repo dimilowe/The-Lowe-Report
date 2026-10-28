@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./lowe-report-ads.css";
 
 @layer base {
   * {

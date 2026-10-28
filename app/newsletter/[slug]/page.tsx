@@ -1,3 +1,4 @@
+import ArticleAd from "@/components/ads/ArticleAd";
 import { query } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
@@ -197,6 +198,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             className="blog-article-body mt-10 max-w-none"
             dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
           />
+          <ArticleAd articleKey={`newsletter:${post.slug}`} />
         </main>
 
         <aside className="hidden lg:block">
