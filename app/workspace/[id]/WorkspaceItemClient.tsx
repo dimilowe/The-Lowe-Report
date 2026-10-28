@@ -14,7 +14,6 @@ interface WorkspaceItemData {
   type: string;
   origin_cloud_id: string | null;
   cloud_id: string | null;
-  tool_id: string | null;
   workflow_id: string | null;
   is_starred: boolean;
   preview_text: string | null;
@@ -402,9 +401,6 @@ export default function WorkspaceItemClient({ item }: Props) {
                 <Clock className="w-4 h-4" />
                 Updated: {formatDate(item.updated_at)}
               </span>
-              {item.tool_id && (
-                <span className="text-zinc-400">Tool: {item.tool_id}</span>
-              )}
             </div>
 
             <div className="mb-8 p-4 rounded-xl border border-zinc-200 bg-zinc-50">

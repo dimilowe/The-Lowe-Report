@@ -16,15 +16,3 @@ export function normalizePathname(pathname: string): string {
 
   return normalized || "/";
 }
-
-export function normalizeToolSlug(slug: string): string {
-  return normalizePathname(`/tools/${slug}`)
-    .replace(/^\/tools\//, "")
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-export function getCanonicalToolPath(slug: string): string {
-  return `/tools/${normalizeToolSlug(slug)}`;
-}

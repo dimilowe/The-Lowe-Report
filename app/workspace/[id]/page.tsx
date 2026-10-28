@@ -30,7 +30,7 @@ export default async function WorkspaceItemPage({ params }: Props) {
     `UPDATE workspace_items 
      SET last_opened_at = NOW()
      WHERE id = $1 AND user_id = $2
-     RETURNING id, title, type, origin_cloud_id, cloud_id, tool_id, workflow_id, is_starred,
+     RETURNING id, title, type, origin_cloud_id, cloud_id, workflow_id, is_starred,
                preview_text, payload_json, thumbnail_url, file_url, created_at, updated_at, last_opened_at,
                COALESCE(payload_json->>'folder', NULL) AS folder,
                COALESCE(payload_json->'tags', '[]'::jsonb) AS tags_json,

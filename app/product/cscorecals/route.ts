@@ -23,7 +23,7 @@ export async function GET() {
     <h1>410</h1>
     <h2>Page Removed</h2>
     <p>This page has been permanently removed and is no longer available.</p>
-    <a href="/tools">Explore Tools</a>
+    <a href="/store">Browse Store</a>
   </div>
 </body>
 </html>`,

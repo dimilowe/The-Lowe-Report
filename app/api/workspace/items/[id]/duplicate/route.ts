@@ -27,7 +27,7 @@ export async function POST(
     }
 
     const sourceResult = await query(
-      `SELECT id, user_id, title, type, origin_cloud_id, cloud_id, tool_id, workflow_id,
+      `SELECT id, user_id, title, type, origin_cloud_id, cloud_id, workflow_id,
               preview_text, payload_json, thumbnail_url, file_url
        FROM workspace_items
        WHERE id = $1 AND user_id = $2`,
@@ -62,7 +62,7 @@ export async function POST(
       `INSERT INTO workspace_items
        (user_id, title, type, origin_cloud_id, cloud_id, tool_id, workflow_id, preview_text, payload_json, thumbnail_url, file_url)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-       RETURNING id, title, type, origin_cloud_id, cloud_id, tool_id, is_starred, preview_text,
+       RETURNING id, title, type, origin_cloud_id, cloud_id, is_starred, preview_text,
                  thumbnail_url, file_url, created_at, updated_at, last_opened_at,
                  COALESCE(payload_json->>'folder', NULL) AS folder,
                  COALESCE(payload_json->'tags', '[]'::jsonb) AS tags_json,
@@ -74,7 +74,7 @@ export async function POST(
         source.type,
         source.origin_cloud_id || null,
         source.cloud_id || null,
-        source.tool_id || null,
+        null,
         source.workflow_id || null,
         source.preview_text || null,
         JSON.stringify(nextPayload),

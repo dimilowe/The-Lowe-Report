@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
     const sortDirection = sort === 'name' ? 'ASC' : 'DESC';
 
     const sql = `
-      SELECT id, title, type, origin_cloud_id, cloud_id, tool_id, is_starred, preview_text,
+      SELECT id, title, type, origin_cloud_id, cloud_id, is_starred, preview_text,
              thumbnail_url, file_url, created_at, updated_at, last_opened_at,
              COALESCE(payload_json->>'folder', NULL) AS folder,
              COALESCE(payload_json->'tags', '[]'::jsonb) AS tags_json,
@@ -208,7 +208,6 @@ export async function POST(request: NextRequest) {
       type,
       origin_cloud_id,
       cloud_id,
-      tool_id,
       workflow_id,
       preview_text,
       payload_json,
@@ -272,7 +271,7 @@ export async function POST(request: NextRequest) {
       `INSERT INTO workspace_items 
        (user_id, title, type, origin_cloud_id, cloud_id, tool_id, workflow_id, preview_text, payload_json, thumbnail_url)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       RETURNING id, title, type, origin_cloud_id, cloud_id, tool_id, is_starred, preview_text, 
+       RETURNING id, title, type, origin_cloud_id, cloud_id, is_starred, preview_text,
                  thumbnail_url, created_at, updated_at, last_opened_at`,
       [
         userIdNum,
@@ -280,7 +279,7 @@ export async function POST(request: NextRequest) {
         type,
         originForStorage,
         legacyCloudId, // Only canonical IDs to preserve constraint compatibility
-        tool_id || null,
+        null,
         workflow_id || null,
         preview_text || null,
         JSON.stringify(mergedPayload),

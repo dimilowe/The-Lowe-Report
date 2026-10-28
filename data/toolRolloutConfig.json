@@ -1,8 +1,0 @@
-{
-  "_comment": "Tool rollout configuration - controls isIndexed, isFeatured, and inDirectory flags per slug",
-  "tools": {
-    "photo-gallery-maker": {
-      "isIndexed": true
-    }
-  }
-}

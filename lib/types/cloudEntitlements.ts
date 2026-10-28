@@ -26,13 +26,6 @@ export const PUBLIC_CLOUD_IDS: CloudId[] = CLOUD_IDS.filter(
 export const ENTITLEMENT_TIERS = _ENTITLEMENT_TIERS;
 export type EntitlementTier = _EntitlementTier;
 
-export const TOOL_ACCESS_TIERS = ['starter', 'basic', 'pro'] as const;
-export type ToolAccessTier = (typeof TOOL_ACCESS_TIERS)[number];
-
-export type ToolAccess = 
-  | { access: 'free' }
-  | { access: 'cloud'; cloud: CloudId; tier: ToolAccessTier };
-
 export type CloudEntitlementsMap = Partial<Record<CloudId, EntitlementTier>>;
 
 export const ENTITLEMENT_SOURCES = ['stripe', 'manual_grant', 'bundle', 'promotion'] as const;

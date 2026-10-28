@@ -21,6 +21,7 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      { source: '/pricing', destination: '/store', permanent: true },
       {
         source: '/tools',
         destination: '/store',
@@ -149,107 +150,10 @@ const nextConfig = {
     ]
   },
   async headers() {
-    return [
-      {
-        source: "/tools",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, s-maxage=3600, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/tools/categories/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, s-maxage=3600, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/tools/clusters/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, s-maxage=3600, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/tools/queries/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, s-maxage=3600, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/tools/image-size-bank",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, s-maxage=3600, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/tools/file-convert-bank",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, s-maxage=3600, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/tools/unit-convert-bank",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, s-maxage=3600, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/tools/pdf-task-bank",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, s-maxage=3600, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/tools/image-format-convert-bank",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, s-maxage=3600, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/tools/calculator-bank",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, s-maxage=3600, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/sitemap.xml",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, s-maxage=3600, stale-while-revalidate=86400",
-          },
-        ],
-      },
-    ];
+    return [{
+      source: "/sitemap.xml",
+      headers: [{ key: "Cache-Control", value: "public, s-maxage=3600, stale-while-revalidate=86400" }],
+    }];
   },
 }
 

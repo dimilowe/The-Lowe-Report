@@ -18,7 +18,6 @@ interface WorkspaceItem {
   type: string;
   origin_cloud_id: string | null;
   cloud_id: string | null;
-  tool_id: string | null;
   is_starred: boolean;
   preview_text: string | null;
   thumbnail_url: string | null;

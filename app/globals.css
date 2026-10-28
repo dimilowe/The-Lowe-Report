@@ -13,22 +13,6 @@
   }
 }
 
-html.audio-workstation-immersive [data-global-navbar="true"],
-body.audio-workstation-immersive [data-global-navbar="true"],
-html.audio-workstation-immersive [data-floating-tools-trigger="true"],
-body.audio-workstation-immersive [data-floating-tools-trigger="true"],
-html.audio-workstation-immersive [data-floating-tools-backdrop="true"],
-body.audio-workstation-immersive [data-floating-tools-backdrop="true"],
-html.audio-workstation-immersive [data-floating-tools-panel="true"],
-body.audio-workstation-immersive [data-floating-tools-panel="true"] {
-  display: none !important;
-}
-
-html.audio-workstation-immersive [data-feedback-trigger="true"],
-body.audio-workstation-immersive [data-feedback-trigger="true"] {
-  display: none !important;
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -393,36 +377,9 @@ body.audio-workstation-immersive [data-feedback-trigger="true"] {
   margin-bottom: 1rem;
 }
 
-.styled-article-content .article-cta .tool-links {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  justify-content: center;
-}
 
-.styled-article-content .article-cta .tool-links li {
-  margin: 0;
-}
 
-.styled-article-content .article-cta .tool-links a {
-  display: inline-block;
-  background: white;
-  border: 1px solid #ea580c;
-  color: #ea580c;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  font-size: 0.9375rem;
-  transition: all 0.2s;
-}
 
-.styled-article-content .article-cta .tool-links a:hover {
-  background: #ea580c;
-  color: white;
-  text-decoration: none;
-}
 
 /* Responsive adjustments */
 @media (min-width: 768px) {

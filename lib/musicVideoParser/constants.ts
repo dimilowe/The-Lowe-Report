@@ -1,9 +1,0 @@
-export const SCENE_THRESHOLD = 0.35;
-export const MIN_SHOT_LEN_SEC = 0.35;
-export const OFFSET_MS = 50;
-export const FRAME_WIDTH = 960;  // Smaller for faster processing
-export const MAX_DURATION_SEC = 90;  // Tighter limit for MVP
-export const MAX_SIZE_BYTES = 250 * 1024 * 1024;
-export const FRAMES_PER_RUN = 25;
-export const MAX_SHOTS = 200;  // Tighter limit for MVP
-export const TOOL_SLUG = "music-video-parser";
