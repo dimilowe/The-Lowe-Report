@@ -9,8 +9,14 @@ type Delivery = {
   destroy?: () => void;
   trackConversion?: () => Promise<void>;
 };
+export type AdPageContext = {
+  topics: string[];
+};
 type AdCoreClient = {
-  render: (container: HTMLElement, options: { placement: string; signal: AbortSignal }) => Promise<Delivery>;
+  render: (
+    container: HTMLElement,
+    options: { placement: string; signal: AbortSignal; pageCtx?: AdPageContext }
+  ) => Promise<Delivery>;
 };
 declare global {
   interface Window {
@@ -27,6 +33,7 @@ type AdSlotProps = {
   enabled?: boolean;
   /** Change this for a new article/page when this component remains mounted. */
   refreshKey?: string;
+  pageCtx?: AdPageContext;
 };
 
 const configuredUrl = process.env.NEXT_PUBLIC_ADCORE_URL?.trim();
@@ -45,12 +52,20 @@ function readOrigin(value: string | undefined): string | null {
 const baseUrl = readOrigin(configuredUrl);
 
 /** The SDK owns rendering and impression tracking for this placement. */
-export default function AdSlot({ placement, className = "", reserveHeight = 100, enabled = true, refreshKey = "" }: AdSlotProps) {
+export default function AdSlot({
+  placement,
+  className = "",
+  reserveHeight = 100,
+  enabled = true,
+  refreshKey = "",
+  pageCtx,
+}: AdSlotProps) {
   const container = useRef<HTMLDivElement>(null);
   const [sdkReady, setSdkReady] = useState(false);
   const [scriptFailed, setScriptFailed] = useState(false);
   const [result, setResult] = useState<{ key: string; status: "filled" | "empty" | "error" } | null>(null);
-  const requestKey = `${placement}:${refreshKey}`;
+  const pageCtxKey = pageCtx ? JSON.stringify(pageCtx) : "";
+  const requestKey = `${placement}:${refreshKey}:${pageCtxKey}`;
   const status = result?.key === requestKey ? result.status : "loading";
 
   useEffect(() => {
@@ -58,13 +73,21 @@ export default function AdSlot({ placement, className = "", reserveHeight = 100,
     const controller = new AbortController();
     let delivery: Delivery | undefined;
     const client = new window.VCMAdCore({ baseUrl, app: appName });
+    const renderOptions: {
+      placement: string;
+      signal: AbortSignal;
+      pageCtx?: AdPageContext;
+    } = { placement, signal: controller.signal };
+    if (pageCtxKey) {
+      renderOptions.pageCtx = JSON.parse(pageCtxKey) as AdPageContext;
+    }
     const timeout = setTimeout(() => {
       if (!delivery) {
         controller.abort();
         setResult({ key: requestKey, status: "error" });
       }
     }, 8000);
-    client.render(container.current, { placement, signal: controller.signal }).then(ad => {
+    client.render(container.current, renderOptions).then(ad => {
       clearTimeout(timeout);
       if (controller.signal.aborted) { ad.destroy?.(); return; }
       delivery = ad;
@@ -78,7 +101,7 @@ export default function AdSlot({ placement, className = "", reserveHeight = 100,
       controller.abort();
       delivery?.destroy?.();
     };
-  }, [enabled, sdkReady, placement, refreshKey, requestKey]);
+  }, [enabled, sdkReady, placement, refreshKey, pageCtxKey, requestKey]);
 
   if (!enabled || !baseUrl) return null;
   return <>

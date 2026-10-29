@@ -30,6 +30,7 @@ interface BlogPost {
   excerpt: string | null;
   meta_description: string | null;
   featured_image_url: string | null;
+  category_slug: string | null;
   published_at: Date;
   view_count: number;
   is_indexed: boolean;
@@ -46,9 +47,27 @@ interface RecommendedProduct {
 
 async function getBlogPost(slug: string): Promise<BlogPost | null> {
   const result = await query(
-    `SELECT id, title, slug, content, excerpt, meta_description, featured_image_url, published_at, view_count, is_indexed
-     FROM blog_posts
-     WHERE slug = $1 AND published_at IS NOT NULL AND published_at <= NOW()
+    `SELECT
+       bp.id,
+       bp.title,
+       bp.slug,
+       bp.content,
+       bp.excerpt,
+       bp.meta_description,
+       bp.featured_image_url,
+       (
+         SELECT c.slug
+         FROM blog_post_categories bpc
+         JOIN categories c ON c.id = bpc.category_id
+         WHERE bpc.blog_post_id = bp.id
+         ORDER BY c.id
+         LIMIT 1
+       ) AS category_slug,
+       bp.published_at,
+       bp.view_count,
+       bp.is_indexed
+     FROM blog_posts bp
+     WHERE bp.slug = $1 AND bp.published_at IS NOT NULL AND bp.published_at <= NOW()
      LIMIT 1`,
     [slug]
   );
@@ -198,7 +217,14 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             className="blog-article-body mt-10 max-w-none"
             dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
           />
-          <ArticleAd articleKey={`newsletter:${post.slug}`} />
+          <ArticleAd
+            articleKey={`newsletter:${post.slug}`}
+            pageCtx={
+              post.category_slug
+                ? { topics: [`editorial.category.${post.category_slug}`] }
+                : undefined
+            }
+          />
         </main>
 
         <aside className="hidden lg:block">

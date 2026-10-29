@@ -1,1 +1,2 @@
 - [Dependency restoration](dependency-restoration.md) — historical locked releases may be security-blocked; restore with approved patched versions.
+- [Advertising context](advertising-context.md) — use assigned category slugs only; no inferred topics, display fallbacks, or personal data.
