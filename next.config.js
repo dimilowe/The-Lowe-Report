@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Keep Node database drivers and optional WebSocket native modules unbundled.
+  serverExternalPackages: ['@neondatabase/serverless', 'pg', 'ws'],
   experimental: {
     proxyClientMaxBodySize: '250mb',
   },

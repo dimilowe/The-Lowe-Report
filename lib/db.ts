@@ -1,5 +1,5 @@
 import { Pool, neonConfig } from '@neondatabase/serverless';
-import { Pool as PgPool } from "pg";
+import { Pool as PgPool, type QueryResult } from "pg";
 import ws from "ws";
 import { recordDbQuery } from "@/lib/ops/metrics";
 
@@ -18,6 +18,18 @@ type RuntimeDbMeta = {
 
 type PoolConnectClient = {
   query: (text: string) => Promise<unknown>;
+};
+
+// Both drivers support these calls; their extra query overloads differ.
+type DatabaseClient = {
+  query: (text: string, params?: any[]) => Promise<QueryResult>;
+  release: () => void;
+};
+
+type DatabasePool = {
+  query: DatabaseClient["query"];
+  connect: () => Promise<DatabaseClient>;
+  on: (event: "connect", listener: (client: PoolConnectClient) => void) => unknown;
 };
 
 function parseRuntimeTarget(): RuntimeTarget {
@@ -97,7 +109,7 @@ const poolOptions = {
   allowExitOnIdle: true,
 };
 
-export const pool = isLocalDatabaseUrl(runtimeDb.url)
+export const pool: DatabasePool = isLocalDatabaseUrl(runtimeDb.url)
   ? new PgPool({ ...poolOptions, ssl: false })
   : new Pool(poolOptions);
 
