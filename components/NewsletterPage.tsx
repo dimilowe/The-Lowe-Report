@@ -369,6 +369,7 @@ export default async function NewsletterPage({
           <div className="grid gap-8 md:grid-cols-3">
             {belowPosts.slice(0, 6).map((post) => (
               <StoryLink key={`briefing-${post.id}`} post={post} className="group block border-t border-gray-200 pt-5">
+                <StoryImage post={post} className="mb-5 aspect-[16/9] w-full" />
                 <Eyebrow>{post.eyebrow}</Eyebrow>
                 <h3 className="text-2xl font-semibold leading-tight tracking-tight group-hover:text-orange-600">
                   {post.title}
