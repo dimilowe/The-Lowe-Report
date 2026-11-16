@@ -1,33 +1,14 @@
 import { query } from "@/lib/db";
 import Link from "next/link";
+import BriefingFeed from "@/components/BriefingFeed";
+import { getBlogPosts, type BlogPost } from "@/lib/newsletter-feed";
 
-
-const POSTS_PER_PAGE = 10;
-
-
-interface BlogPost {
-  id: number;
-  title: string;
-  slug: string;
-  excerpt: string;
-  featured_image_url: string | null;
-  published_at: Date;
-  view_count: number;
-  categories: { id: number; name: string; slug: string }[];
-}
 
 interface Category {
   id: number;
   name: string;
   slug: string;
   post_count: number;
-}
-
-interface PaginatedResult {
-  posts: BlogPost[];
-  totalCount: number;
-  totalPages: number;
-  currentPage: number;
 }
 
 type DisplayPost = BlogPost & {
@@ -117,71 +98,6 @@ const fallbackPosts: DisplayPost[] = [
   },
 ];
 
-async function getBlogPosts(categorySlug?: string, page: number = 1): Promise<PaginatedResult> {
-  const offset = (page - 1) * POSTS_PER_PAGE;
-
-  let countSql = `
-    SELECT COUNT(DISTINCT bp.id) as count
-    FROM blog_posts bp
-    LEFT JOIN blog_post_categories bpc ON bp.id = bpc.blog_post_id
-    WHERE bp.published_at IS NOT NULL AND bp.published_at <= NOW() AND (bp.unlisted IS NULL OR bp.unlisted = false)
-  `;
-
-  let sql = `
-    SELECT
-      bp.id,
-      bp.title,
-      bp.slug,
-      bp.excerpt,
-      bp.featured_image_url,
-      bp.published_at,
-      bp.view_count,
-      COALESCE(
-        json_agg(
-          json_build_object('id', c.id, 'name', c.name, 'slug', c.slug)
-        ) FILTER (WHERE c.id IS NOT NULL),
-        '[]'
-      ) as categories
-    FROM blog_posts bp
-    LEFT JOIN blog_post_categories bpc ON bp.id = bpc.blog_post_id
-    LEFT JOIN categories c ON bpc.category_id = c.id
-    WHERE bp.published_at IS NOT NULL AND bp.published_at <= NOW() AND (bp.unlisted IS NULL OR bp.unlisted = false)
-  `;
-
-  const params: (string | number)[] = [];
-  let paramIndex = 1;
-
-  if (categorySlug) {
-    const categoryFilter = ` AND bp.id IN (
-      SELECT blog_post_id FROM blog_post_categories
-      WHERE category_id = (SELECT id FROM categories WHERE slug = $${paramIndex})
-    )`;
-    sql += categoryFilter;
-    countSql += categoryFilter;
-    params.push(categorySlug);
-    paramIndex++;
-  }
-
-  sql += `
-    GROUP BY bp.id
-    ORDER BY bp.published_at DESC
-    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-  `;
-
-  const countResult = await query(countSql, categorySlug ? [categorySlug] : []);
-  const totalCount = parseInt(countResult.rows[0]?.count || "0");
-  const totalPages = Math.ceil(totalCount / POSTS_PER_PAGE);
-
-  const result = await query(sql, [...params, POSTS_PER_PAGE, offset]);
-
-  return {
-    posts: result.rows,
-    totalCount,
-    totalPages,
-    currentPage: page,
-  };
-}
-
 async function getCategories(): Promise<Category[]> {
   const result = await query(
     `SELECT
@@ -269,7 +185,8 @@ export default async function NewsletterPage({
   afterLead?: React.ReactNode;
 }) {
   const { category, page } = await searchParams;
-  const currentPage = Math.max(1, parseInt(page || "1"));
+  const parsedPage = Number(page || "1");
+  const currentPage = Number.isSafeInteger(parsedPage) && parsedPage > 0 && parsedPage <= 10000 ? parsedPage : 1;
   const { posts, totalPages } = await getBlogPosts(category, currentPage);
   const categories = await getCategories();
   const displayPosts = posts.length > 0 ? posts.map(toDisplayPost) : fallbackPosts;
@@ -353,33 +270,22 @@ export default async function NewsletterPage({
 
         {afterLead}
 
-        <section className="mt-16 border-t border-black pt-8">
+        <section id="briefing" className="mt-16 border-t border-black pt-8">
           <div className="mb-8 flex items-end justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Latest</p>
               <h2 className="mt-2 font-serif text-4xl font-semibold tracking-tight">The Briefing</h2>
             </div>
-            {totalPages > 1 && (
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-                Page {currentPage} of {totalPages}
-              </p>
-            )}
           </div>
 
-          <div className="grid gap-8 md:grid-cols-3">
-            {belowPosts.slice(0, 6).map((post) => (
-              <StoryLink key={`briefing-${post.id}`} post={post} className="group block border-t border-gray-200 pt-5">
-                <StoryImage post={post} className="mb-5 aspect-[16/9] w-full" />
-                <Eyebrow>{post.eyebrow}</Eyebrow>
-                <h3 className="text-2xl font-semibold leading-tight tracking-tight group-hover:text-orange-600">
-                  {post.title}
-                </h3>
-                {post.excerpt && (
-                  <p className="mt-3 line-clamp-3 text-sm leading-6 text-gray-600">{post.excerpt}</p>
-                )}
-              </StoryLink>
-            ))}
-          </div>
+          <BriefingFeed
+            key={`${category || ""}:${currentPage}`}
+            initialPosts={belowPosts.map(({ id, title, excerpt, featured_image_url, eyebrow, href }) => ({
+              id, title, excerpt, featured_image_url, eyebrow, href,
+            }))}
+            initialNextPage={currentPage < totalPages ? currentPage + 1 : null}
+            category={category}
+          />
         </section>
 
         {posts.length === 0 && (
