@@ -103,6 +103,7 @@ export default function ArticleVisualReader({
   const toggleRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const openingScrollX = useRef(0);
   const openingScrollY = useRef(0);
   const [prepared, setPrepared] = useState<PreparedArticle | null>(null);
   const [active, setActive] = useState(false);
@@ -158,6 +159,7 @@ export default function ArticleVisualReader({
   useEffect(() => {
     if (!active) return;
 
+    openingScrollX.current = window.scrollX;
     openingScrollY.current = window.scrollY;
     const bodyStyle = {
       overflow: document.body.style.overflow,
@@ -171,10 +173,12 @@ export default function ArticleVisualReader({
     document.body.style.overflow = "hidden";
     document.body.style.position = "fixed";
     document.body.style.top = `-${openingScrollY.current}px`;
-    document.body.style.left = "0";
+    document.body.style.left = `-${openingScrollX.current}px`;
     document.body.style.width = "100%";
     const restoreIframes = stopBackgroundMedia();
-    const focusTimer = window.requestAnimationFrame(() => closeRef.current?.focus());
+    const focusTimer = window.requestAnimationFrame(() =>
+      closeRef.current?.focus({ preventScroll: true }),
+    );
 
     return () => {
       window.cancelAnimationFrame(focusTimer);
@@ -185,8 +189,12 @@ export default function ArticleVisualReader({
       document.body.style.left = bodyStyle.left;
       document.body.style.width = bodyStyle.width;
       restoreIframes();
-      window.scrollTo({ top: openingScrollY.current, behavior: "auto" });
-      window.requestAnimationFrame(() => toggleRef.current?.focus());
+      window.scrollTo({
+        left: openingScrollX.current,
+        top: openingScrollY.current,
+        behavior: "auto",
+      });
+      window.requestAnimationFrame(() => toggleRef.current?.focus({ preventScroll: true }));
     };
   }, [active, stopBackgroundMedia]);
 
@@ -294,6 +302,7 @@ export default function ArticleVisualReader({
             <div
               ref={overlayRef}
               className={styles.overlay}
+              data-visual-overlay
               role="dialog"
               aria-modal="true"
               aria-label={`Visual mode: ${title}`}
@@ -328,7 +337,11 @@ export default function ArticleVisualReader({
                   </p>
                 </div>
 
-                <div className={styles.mediaStage}>
+                <div
+                  className={styles.mediaStage}
+                  data-visual-media-stage
+                  aria-label="Selected image or video"
+                >
                   {selectedMedia?.kind === "youtube" && embedUrl ? (
                     <iframe
                       key={`${articleKey}:${selectedMedia.id}`}
@@ -401,7 +414,11 @@ export default function ArticleVisualReader({
                 </div>
               </section>
 
-              <div className={styles.readerPane}>
+              <div
+                className={styles.readerPane}
+                data-visual-reader-pane
+                aria-label="Scrollable article"
+              >
                 <div className={styles.readerIntro}>
                   <span className={styles.readerEyebrow}>The story</span>
                   <span className={styles.readerInstruction}>Select a marked image or video to view it above</span>
