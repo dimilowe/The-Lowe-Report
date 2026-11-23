@@ -2,3 +2,4 @@
 - [Production build isolation](production-build-isolation.md) — keep mockups out of app type checks; retain Webpack and external Node DB drivers until bundler compatibility is verified.
 - [Advertising context](advertising-context.md) — use assigned category slugs only; no inferred topics, display fallbacks, or personal data.
 - [Google Analytics](google-analytics.md) — preserve the standard command queue; avoid duplicating account-enabled automatic navigation page views.
+- [Article Visual Mode](article-visual-mode.md) — optional watch-and-read experience; preserve normal reading, full indexable content, and one active player.

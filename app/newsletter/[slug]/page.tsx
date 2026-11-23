@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
 import { AudioPlayer } from "@/components/AudioPlayer";
+import ArticleVisualReader from "@/components/article/ArticleVisualReader";
 
 function isHTML(str: string): boolean {
   return /<[a-z][\s\S]*>/i.test(str);
@@ -216,9 +217,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <main>
           <AudioPlayer postId={post.id} />
 
-          <div
-            className="blog-article-body mt-10 max-w-none"
-            dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
+          <ArticleVisualReader
+            key={post.slug}
+            articleKey={post.slug}
+            title={post.title}
+            content={formatContent(post.content)}
+            featuredImage={post.featured_image_url}
           />
           <ArticleAd
             articleKey={`newsletter:${post.slug}`}

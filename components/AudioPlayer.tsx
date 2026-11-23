@@ -253,6 +253,7 @@ export function AudioPlayer({ postId }: AudioPlayerProps) {
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onEnded={handleEnded}
+            onPause={() => setIsPlaying(false)}
           />
           
           <div className="mt-4 space-y-2">
