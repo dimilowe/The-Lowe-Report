@@ -48,7 +48,7 @@
     "iron-session": "^8.0.4",
     "lucide-react": "^0.552.0",
     "mime-types": "^3.0.2",
-    "next": "^16.4.3",
+    "next": "^16.4.6",
     "openai": "^6.7.0",
     "pg": "^8.16.3",
     "postcss": "^8.5.6",
